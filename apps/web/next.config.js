@@ -1,4 +1,8 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+    transpilePackages: [
+        "@turbo-with-tailwind/ui",
+    ],
+};
 
 export default nextConfig;
