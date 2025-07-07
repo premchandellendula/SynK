@@ -9,9 +9,63 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  email        String   @unique
+  password     String
+  createdAt    DateTime @default(now())
+  roomsCreated Room[]   @relation("RoomOwner")
+
+  rooms     Room[]     @relation("RoomUsers")
+  questions Question[] @relation("QuestionsSent")
+  upVotes   UpVote[]
+}
+
+model Room {
+  id        String   @id @default(uuid()) @db.Uuid
   name      String
-  email     String   @unique
-  password  String
+  code      String   @unique
+  createdBy User     @relation("RoomOwner", fields: [creatorId], references: [id], onDelete: Cascade)
+  creatorId String   @db.Uuid
+  startDate DateTime @default(now())
+  endDate   DateTime
+
+  users     User[]     @relation("RoomUsers")
+  questions Question[] @relation("Questions")
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Question {
+  id       String         @id @default(uuid()) @db.Uuid
+  question String
+  sender   User           @relation("QuestionsSent", fields: [senderId], references: [id])
+  senderId String         @db.Uuid
+  room     Room           @relation("Questions", fields: [roomId], references: [id], onDelete: Cascade)
+  roomId   String         @db.Uuid()
+  upVotes  UpVote[]
+  status   QuestionStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UpVote {
+  id         String   @id @default(uuid())
+  votedBy    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String   @db.Uuid
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId String   @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, questionId])
+}
+
+enum QuestionStatus {
+  PENDING
+  ANSWERED
+  IGNORED
 }
