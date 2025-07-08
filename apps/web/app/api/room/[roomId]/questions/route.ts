@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import zod from 'zod';
 import { authMiddleware } from "../../../lib/authMiddleware";
-import { prisma } from "@repo/db";
+import { prisma, QuestionStatus } from "@repo/db";
 
 const questionBody = zod.object({
     question: zod.string()
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ roo
         return NextResponse.json({
             message: "Message Created successfully",
             question: ques
-        })
+        }, {status: 201})
     }catch(err){
         console.error("Error creating a message:", err);
         return NextResponse.json({ message: "Internal server error" }, { status: 500 });
@@ -60,10 +60,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ roo
 export async function GET(req: NextRequest, { params }: { params: Promise<{ roomId: string }> }){
     const { roomId } = await params;
 
+    const searchParams = req.nextUrl.searchParams;
+    const allowedStatuses: QuestionStatus[] = [
+        "PENDING",
+        "ANSWERED",
+        "IGNORED"
+    ];
+    const rawStatus = searchParams.get("status");
+    const status: QuestionStatus = allowedStatuses.includes(rawStatus as QuestionStatus) ? (rawStatus as QuestionStatus) : "PENDING";
+
     try{
         const questions = await prisma.question.findMany({
             where: {
-                roomId
+                roomId,
+                status
             },
             select: {
                 id: true,
@@ -84,7 +94,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ room
         return NextResponse.json({
             message: "Questions fetched successfully",
             questions
-        })
+        }, {status: 200})
     }catch(err){
         console.log("Error fetching the question: ", err);
         return NextResponse.json({message: "Internal server error"}, {status: 500})
