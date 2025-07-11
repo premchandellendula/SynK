@@ -16,11 +16,15 @@ model User {
   createdAt    DateTime @default(now())
   roomsCreated Room[]   @relation("RoomOwner")
 
-  rooms     Room[]     @relation("RoomUsers")
-  questions Question[] @relation("QuestionsSent")
-  upVotes   UpVote[]
-  polls     Poll[]     @relation("RoomOwner")
-  pollVotes PollVote[] @relation("UserPollVotes")
+  rooms           Room[]            @relation("RoomUsers")
+  questions       Question[]        @relation("QuestionsSent")
+  upVotes         UpVote[]
+  polls           Poll[]            @relation("RoomOwner")
+  pollVotes       PollVote[]        @relation("UserPollVotes")
+  quizzes         Quiz[]            @relation("QuizOwner")
+  quizVotes       QuizVote[]
+  quizLeaderBoard QuizLeaderBoard[]
+  quizParticipant QuizParticipant[]
 }
 
 model Room {
@@ -38,6 +42,7 @@ model Room {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  quizzes   Quiz[]
 }
 
 model Question {
@@ -115,4 +120,92 @@ model PollVote {
   userId   String     @db.Uuid
 
   @@unique([userId, pollId])
+}
+
+model Quiz {
+  id                String        @id @default(uuid()) @db.Uuid
+  quizName          String
+  room              Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId            String        @db.Uuid
+  createdBy         User          @relation("QuizOwner", fields: [creatorId], references: [id])
+  creatorId         String        @db.Uuid
+  status            QuizStatus    @default(DRAFT)
+  currentQuestion   QuizQuestion? @relation("CurrentQuizQuestion", fields: [currentQuestionId], references: [id])
+  currentQuestionId String?       @unique @db.Uuid
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  quizQuestions   QuizQuestion[]    @relation("QuizToQuizQuestions")
+  quizLeaderBoard QuizLeaderBoard[]
+  quizParticipant QuizParticipant[]
+}
+
+enum QuizStatus {
+  DRAFT
+  LAUNCHED
+  STOPPED
+  ENDED
+}
+
+model QuizQuestion {
+  id               String       @id @default(uuid()) @db.Uuid
+  question         String
+  quiz             Quiz         @relation("QuizToQuizQuestions", fields: [quizId], references: [id], onDelete: Cascade)
+  quizId           String       @db.Uuid
+  voteCount        Int
+  quizVotes        QuizVote[]
+  quizOptions      QuizOption[]
+  isActive         Boolean      @default(false)
+  isAnswerRevealed Boolean      @default(false)
+  timerSeconds     Int?
+  currentForQuiz   Quiz?        @relation("CurrentQuizQuestion")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model QuizOption {
+  id             String       @id @default(uuid()) @db.Uuid
+  text           String
+  quizQuestion   QuizQuestion @relation(fields: [quizQuestionId], references: [id], onDelete: Cascade)
+  quizQuestionId String       @db.Uuid
+  isCorrect      Boolean      @default(false)
+  voteCount      Int
+  quizVotes      QuizVote[]
+}
+
+model QuizVote {
+  id             String       @id @default(uuid()) @db.Uuid
+  quizQuestion   QuizQuestion @relation(fields: [quizQuestionId], references: [id], onDelete: Cascade)
+  quizQuestionId String       @db.Uuid
+  quizOption     QuizOption   @relation(fields: [quizOptionId], references: [id], onDelete: Cascade)
+  quizOptionId   String       @db.Uuid
+  user           User         @relation(fields: [userId], references: [id])
+  userId         String       @db.Uuid
+  createdAt      DateTime     @default(now())
+
+  @@unique([userId, quizQuestionId])
+}
+
+model QuizLeaderBoard {
+  id        String   @id @default(uuid()) @db.Uuid
+  quizId    String   @db.Uuid
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([quizId, userId])
+}
+
+model QuizParticipant {
+  id       String   @id @default(uuid()) @db.Uuid
+  quiz     Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quizId   String   @db.Uuid
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String   @db.Uuid
+  name     String
+  joinedAt DateTime @default(now())
 }
