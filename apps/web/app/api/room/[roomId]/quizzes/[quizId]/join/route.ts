@@ -24,6 +24,35 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{room
     const { name } = response.data;
 
     try {
+        const room = await prisma.room.findUnique({
+            where: {
+                id: roomId
+            }
+        })
+
+        if(!room){
+            return NextResponse.json({
+                message: "Room not found"
+            }, {status: 404})
+        }
+        
+        if (room.endDate < new Date() || room.status === "ENDED") {
+            return NextResponse.json({
+                message: "Room has already ended. Cannot create quiz."
+            }, { status: 400 });
+        }
+
+        const quiz = await prisma.quiz.findUnique({
+            where: {
+                id: quizId
+            }
+        })
+
+        if(!quiz){
+            return NextResponse.json({
+                message: "Quiz not found"
+            }, {status: 404})
+        }
         const quizUser = await prisma.quizParticipant.create({
             data: {
                 name,
@@ -38,7 +67,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{room
                 id: quizUser.id,
                 name: quizUser.name
             }
-        })
+        }, {status: 201})
     }catch(err) {
         console.log("Error joining the room: ", err);
         return NextResponse.json({ message: "Internal server error" }, {status: 500})

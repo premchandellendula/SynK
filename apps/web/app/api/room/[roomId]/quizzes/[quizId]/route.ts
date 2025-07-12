@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{roomI
             }, {status: 404})
         }
         
-        if (room.endDate < new Date()) {
+        if (room.endDate < new Date() || room.status === "ENDED") {
             return NextResponse.json({
                 message: "Room has already ended. Cannot create quiz."
             }, { status: 400 });
@@ -80,7 +80,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ro
             }, {status: 404})
         }
         
-        if (room.endDate < new Date()) {
+        if (room.endDate < new Date() || room.status === "ENDED") {
             return NextResponse.json({
                 message: "Room has already ended. Cannot create quiz."
             }, { status: 400 });
@@ -113,6 +113,67 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ro
 
         return NextResponse.json({
             message: "Quiz deleted successfully",
+            quiz
+        }, {status: 200})
+    }catch(err) {
+        console.log("Error fetching the quizzes: ", err);
+        return NextResponse.json({ message: "Internal server error" }, {status: 500})
+    }
+}
+
+export async function PUT(req: NextRequest, { params }: { params: Promise<{roomId: string, quizId: string}>}){
+    const { roomId, quizId } = await params;
+    const auth = await authMiddleware(req);
+    if(!("authorized" in auth)) return auth;
+    try {
+        const room = await prisma.room.findUnique({
+            where: {
+                id: roomId
+            }
+        })
+
+        if(!room){
+            return NextResponse.json({
+                message: "Room not found"
+            }, {status: 404})
+        }
+        
+        if (room.endDate < new Date() || room.status === "ENDED") {
+            return NextResponse.json({
+                message: "Room has already ended. Cannot create quiz."
+            }, { status: 400 });
+        }
+
+        const existingQuiz = await prisma.quiz.findUnique({
+            where: {
+                id: quizId
+            }
+        })
+
+        if(!existingQuiz){
+            return NextResponse.json({
+                message: "Quiz not found"
+            }, {status: 404})
+        }
+
+        if(existingQuiz.creatorId !== auth.userId){
+            return NextResponse.json({
+                message: "Only room owners can end the quiz"
+            }, {status: 403})
+        }
+
+        const quiz = await prisma.quiz.update({
+            where: {
+                id: quizId,
+                roomId
+            },
+            data: {
+                status: "STOPPED"
+            }
+        })
+
+        return NextResponse.json({
+            message: "Quiz ended successfully",
             quiz
         }, {status: 200})
     }catch(err) {

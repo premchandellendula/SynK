@@ -1,8 +1,11 @@
 import { prisma } from "@repo/db";
 import { NextRequest, NextResponse } from "next/server";
+import { authMiddleware } from "../../../../../../../lib/authMiddleware";
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{roomId: string, quizId: string, questionId: string}>}){
     const { roomId, quizId, questionId } = await params;
+    const auth = await  authMiddleware(req);
+    if(!("authorized" in auth)) return auth;
 
     try {
         const room = await prisma.room.findUnique({ where: { id: roomId } });
@@ -10,8 +13,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{roomI
             return NextResponse.json({ message: "Room not found" }, { status: 404 });
         }
 
-        if (room.endDate < new Date()) {
+        if (room.endDate < new Date() || room.status === "ENDED") {
             return NextResponse.json({ message: "Room has already ended." }, { status: 400 });
+        }
+
+        if(room.creatorId !== auth.userId){
+            return NextResponse.json({
+                message: "Only owners can reveal the answers"
+            }, {status: 403})
         }
 
         const quiz = await prisma.quiz.findUnique({ where: { id: quizId } });
@@ -59,12 +68,3 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{roomI
         return NextResponse.json({ message: "Internal server error" }, {status: 500})
     }
 }
-
-/*
-routes
-PUT /api/room/:roomId/quizzes/:quizId/end - ends quiz
-GET /api/room/:roomId/quizzes/:quizId/leaderboard - get leaderboard
-DELETE /api/room/:roomId/quizzes/:quizId - delete quiz
-
-probably also, whoever got a question right, increase the score and add to leaderboard
-*/

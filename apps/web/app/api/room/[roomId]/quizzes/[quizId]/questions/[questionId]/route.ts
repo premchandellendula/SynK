@@ -1,8 +1,8 @@
 import { prisma } from "@repo/db";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{roomId: string, quizId: string}>}){
-    const { roomId, quizId } = await params;
+export async function GET(req: NextRequest, { params }: { params: Promise<{roomId: string, quizId: string, questionId: string}>}){
+    const { roomId, quizId, questionId } = await params;
 
     try {
         const room = await prisma.room.findUnique({
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{roomI
             }, {status: 404})
         }
         
-        if (room.endDate < new Date() || room.status === "ENDED") {
+        if (room.endDate < new Date()) {
             return NextResponse.json({
                 message: "Room has already ended. Cannot create quiz."
             }, { status: 400 });
@@ -34,28 +34,37 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{roomI
                 message: "Quiz not found"
             }, {status: 404})
         }
-        
-        const users = await prisma.quiz.findMany({
+
+        const question = await prisma.quizQuestion.findUnique({
             where: {
-                id: quizId,
-                roomId
+                id: questionId
             },
             select: {
-                quizParticipant: {
+                id: true,
+                quizId: true,
+                question: true,
+                quizOptions: {
                     select: {
                         id: true,
-                        name: true
+                        text: true,
+                        voteCount: true
                     }
                 }
             }
         })
 
+        if (!question || question.quizId !== quizId) {
+            return NextResponse.json({
+                message: "Question not found in this quiz."
+            }, { status: 404 });
+        }
+        
         return NextResponse.json({
-            message: "Users fetched successfully",
-            users
+            message: "Question fetched successfully",
+            question
         }, {status: 200})
     }catch(err) {
-        console.log("Error fetching users: ", err)
+        console.log("Error fetching the question: ", err);
         return NextResponse.json({ message: "Internal server error" }, {status: 500})
     }
 }
