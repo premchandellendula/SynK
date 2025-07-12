@@ -25,6 +25,23 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ roo
     if(!("authorized" in auth)) return auth;
 
     try{
+        const room = await prisma.room.findUnique({
+            where: { 
+                id: roomId
+            }
+        })
+
+        if(!room){
+            return NextResponse.json({
+                message: "Room not found"
+            }, {status: 404})
+        }
+
+        if (room.endDate < new Date() || room.status === "ENDED") {
+            return NextResponse.json({
+                message: "Room has expired."
+            }, { status: 400 });
+        }
         const ques = await prisma.question.create({
             data: {
                 question,
@@ -70,6 +87,23 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ room
     const status: QuestionStatus = allowedStatuses.includes(rawStatus as QuestionStatus) ? (rawStatus as QuestionStatus) : "PENDING";
 
     try{
+        const room = await prisma.room.findUnique({
+            where: { 
+                id: roomId
+            }
+        })
+
+        if(!room){
+            return NextResponse.json({
+                message: "Room not found"
+            }, {status: 404})
+        }
+
+        if (room.endDate < new Date() || room.status === "ENDED") {
+            return NextResponse.json({
+                message: "Room has expired."
+            }, { status: 400 });
+        }
         const questions = await prisma.question.findMany({
             where: {
                 roomId,

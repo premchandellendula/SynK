@@ -47,11 +47,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{room
             }, {status: 404})
         }
         
-        if (room.endDate < new Date()) {
+        if (room.endDate < new Date() || room.status === "ENDED") {
             return NextResponse.json({
                 message: "Room has already ended. Cannot create quiz."
             }, { status: 400 });
         }
+
+        if(room.creatorId !== auth.userId){
+            return NextResponse.json({
+                message: "Only room owner has the access to create quiz."
+            }, {status: 403})
+        }
+
         const quiz = await prisma.quiz.create({
             data: {
                 quizName,
@@ -107,7 +114,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{roomI
             }, {status: 404})
         }
         
-        if (room.endDate < new Date()) {
+        if (room.endDate < new Date() || room.status === "ENDED") {
             return NextResponse.json({
                 message: "Room has already ended. Cannot create quiz."
             }, { status: 400 });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authMiddleware } from "../../../../lib/authMiddleware";
 import { PollStatus, prisma } from "@repo/db";
 
+// end pole
 export async function PUT(req: NextRequest, { params } : { params: Promise<{roomId: string, pollId: string}>}){
     const { roomId, pollId } = await params;
 
@@ -18,6 +19,12 @@ export async function PUT(req: NextRequest, { params } : { params: Promise<{room
             return NextResponse.json({
                 message: "Room not found"
             }, {status: 404})
+        }
+
+        if (room.endDate < new Date() || room.status === "ENDED") {
+            return NextResponse.json({
+                message: "Room has expired."
+            }, { status: 400 });
         }
 
         if(room.creatorId !== auth.userId){
@@ -60,10 +67,28 @@ export async function PUT(req: NextRequest, { params } : { params: Promise<{room
     }
 }
 
+// get individual poll
 export async function GET(req: NextRequest, { params }: { params: Promise<{roomId: string, pollId: string}>}){
     const { roomId, pollId } = await params;
     
     try {
+        const room = await prisma.room.findUnique({
+            where: {
+                id: roomId
+            }
+        })
+        if(!room){
+            return NextResponse.json({
+                message: "Room not found"
+            }, {status: 404})
+        }
+
+        if (room.endDate < new Date() || room.status === "ENDED") {
+            return NextResponse.json({
+                message: "Room has expired."
+            }, { status: 400 });
+        }
+
         const poll = await prisma.poll.findUnique({
             where: {
                 id: pollId,
@@ -101,16 +126,23 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{roomI
             }
         })
 
+        if(!poll){
+            return NextResponse.json({
+                message: "Poll not found"
+            }, {status: 404})
+        }
+
         return NextResponse.json({
             message: "Poll fetched successfully",
             poll
-        })
+        }, {status: 200})
     }catch(err) {
         console.log("Error fetching the poll: ", err);
         return NextResponse.json({ message: "Internal server error" }, { status: 500})
     }
 }
 
+// delete the poll
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{roomId: string, pollId: string}>}){
     const { roomId, pollId } = await params;
 

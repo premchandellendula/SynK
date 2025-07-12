@@ -34,7 +34,7 @@ export async function POST(req: NextRequest){
             }, {status: 400})
         }
 
-        if (room.endDate < new Date()) {
+        if (room.endDate < new Date() || room.status === "ENDED") {
             return NextResponse.json({
                 message: "Room has expired."
             }, { status: 400 });

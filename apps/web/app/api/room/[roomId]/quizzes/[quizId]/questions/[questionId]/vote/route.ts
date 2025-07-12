@@ -36,7 +36,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{room
             }, {status: 404})
         }
         
-        if (room.endDate < new Date()) {
+        if (room.endDate < new Date() || room.status === "ENDED") {
             return NextResponse.json({
                 message: "Room has already ended. Cannot create quiz."
             }, { status: 400 });
