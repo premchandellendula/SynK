@@ -86,6 +86,23 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{roomI
     const { roomId } = await params;
     
     try {
+        const room = await prisma.room.findUnique({
+            where: {
+                id: roomId
+            }
+        })
+
+        if(!room){
+            return NextResponse.json({
+                message: "Room not found"
+            }, {status: 404})
+        }
+
+        if (room.endDate < new Date() || room.status === "ENDED") {
+            return NextResponse.json({
+                message: "Room has expired."
+            }, { status: 400 });
+        }
         const polls = await prisma.poll.findMany({
             where: {
                 roomId
@@ -117,7 +134,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{roomI
         return NextResponse.json({
             message: "Polls fetched successfully",
             polls
-        })
+        }, {status: 200})
     }catch(err) {
         console.log("Error fetching the polls: ", err);
         return NextResponse.json({ message: "Internal server error" }, { status: 500})

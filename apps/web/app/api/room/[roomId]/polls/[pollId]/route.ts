@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { authMiddleware } from "../../../../lib/authMiddleware";
 import { PollStatus, prisma } from "@repo/db";
 
+// end pole
 export async function PUT(req: NextRequest, { params } : { params: Promise<{roomId: string, pollId: string}>}){
     const { roomId, pollId } = await params;
 
@@ -66,6 +67,7 @@ export async function PUT(req: NextRequest, { params } : { params: Promise<{room
     }
 }
 
+// get individual poll
 export async function GET(req: NextRequest, { params }: { params: Promise<{roomId: string, pollId: string}>}){
     const { roomId, pollId } = await params;
     
@@ -140,6 +142,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{roomI
     }
 }
 
+// delete the poll
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{roomId: string, pollId: string}>}){
     const { roomId, pollId } = await params;
 
