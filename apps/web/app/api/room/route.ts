@@ -45,6 +45,7 @@ export async function POST(req: NextRequest){
                 code: true,
                 startDate: true,
                 endDate: true,
+                status: true,
                 createdBy: {
                     select: {
                         id: true,

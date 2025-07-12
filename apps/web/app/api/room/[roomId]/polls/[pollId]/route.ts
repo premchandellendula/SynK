@@ -20,6 +20,12 @@ export async function PUT(req: NextRequest, { params } : { params: Promise<{room
             }, {status: 404})
         }
 
+        if (room.endDate < new Date() || room.status === "ENDED") {
+            return NextResponse.json({
+                message: "Room has expired."
+            }, { status: 400 });
+        }
+
         if(room.creatorId !== auth.userId){
             return NextResponse.json({
                 message: "Only the room owner can create or launch polls."
@@ -64,6 +70,23 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{roomI
     const { roomId, pollId } = await params;
     
     try {
+        const room = await prisma.room.findUnique({
+            where: {
+                id: roomId
+            }
+        })
+        if(!room){
+            return NextResponse.json({
+                message: "Room not found"
+            }, {status: 404})
+        }
+
+        if (room.endDate < new Date() || room.status === "ENDED") {
+            return NextResponse.json({
+                message: "Room has expired."
+            }, { status: 400 });
+        }
+
         const poll = await prisma.poll.findUnique({
             where: {
                 id: pollId,
@@ -101,10 +124,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{roomI
             }
         })
 
+        if(!poll){
+            return NextResponse.json({
+                message: "Poll not found"
+            }, {status: 404})
+        }
+
         return NextResponse.json({
             message: "Poll fetched successfully",
             poll
-        })
+        }, {status: 200})
     }catch(err) {
         console.log("Error fetching the poll: ", err);
         return NextResponse.json({ message: "Internal server error" }, { status: 500})

@@ -41,6 +41,12 @@ export async function POST(req: NextRequest, { params }: { params : Promise<{roo
             }, {status: 404})
         }
 
+        if (room.endDate < new Date() || room.status === "ENDED") {
+            return NextResponse.json({
+                message: "Room has expired."
+            }, { status: 400 });
+        }
+
         if(room.creatorId !== auth.userId){
             return NextResponse.json({
                 message: "Only the room owner can create or launch polls."
