@@ -1,8 +1,14 @@
 
 
-const Logo = () => {
+const Logo = ({size}: {size: number}) => {
+    const sizeClasses: { [key: number]: string } = {
+        8: 'h-8',
+        12: 'h-12',
+        16: 'h-16',
+        20: 'h-20',
+    };
     return (
-        <svg viewBox="0 0 70 80" xmlns="http://www.w3.org/2000/svg" className="w-auto h-18 mx-auto">
+        <svg viewBox="0 0 70 80" xmlns="http://www.w3.org/2000/svg" className={`w-auto ${sizeClasses[size] || 'h-18'} mx-auto`}>
             <defs>
                 <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" style={{"stopColor":"oklch(0.606 0.25 292.717)", "stopOpacity":1}} />

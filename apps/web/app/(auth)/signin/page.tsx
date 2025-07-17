@@ -60,7 +60,7 @@ const page = () => {
                 <form onSubmit={handleSubmit}>
                     <div className="flex flex-col gap-3">
                         <div className="flex justify-center">
-                            <Logo />
+                            <Logo size={18} />
                         </div>
                         <Heading size="2xl" text="Signin" />
                         <Input placeholder="Email Address" type="email" name="email" id="email" onChange={handleChange} />

@@ -119,3 +119,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes tofro {
+  0%, 100% {
+    transform: translateY(-5%);
+  }
+  50% {
+    transform: translateY(5%);
+  }
+}
