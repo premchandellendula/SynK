@@ -27,7 +27,7 @@ export async function POST(req: NextRequest){
         const room = await prisma.room.findUnique({
             where: { code }
         })
-
+        // console.log(room)
         if(!room){
             return NextResponse.json({
                 message: "code is invalid or room doesn't exist"

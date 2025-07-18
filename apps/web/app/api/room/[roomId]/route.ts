@@ -64,7 +64,7 @@ export async function PUT(req: NextRequest, { params } : { params: Promise<{room
 
         if(room.creatorId !== auth.userId){
             return NextResponse.json({
-                message: "You are not authorized to delete this room."
+                message: "You are not authorized to end this room."
             }, { status: 403 });
         }
 

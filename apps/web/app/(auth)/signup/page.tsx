@@ -65,6 +65,9 @@ export default function Signup(){
             })
 
             toast.success("Signup successful")
+            if(formData.email && formData.password){
+                router.push(`/spaces`)
+            }
         }catch(err) {
             let errorMessage = "Something went wrong";
 
