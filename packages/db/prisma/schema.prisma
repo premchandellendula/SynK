@@ -31,6 +31,7 @@ model Room {
   id        String     @id @default(uuid()) @db.Uuid
   name      String
   code      String     @unique
+  spaceId   String     @unique
   createdBy User       @relation("RoomOwner", fields: [creatorId], references: [id], onDelete: Cascade)
   creatorId String     @db.Uuid
   startDate DateTime   @default(now())

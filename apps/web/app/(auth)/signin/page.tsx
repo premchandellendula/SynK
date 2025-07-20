@@ -40,6 +40,10 @@ const page = () => {
                 withCredentials: true
             })
 
+            if(formData.email && formData.password){
+                router.push(`/spaces`)
+            }
+
             toast.success("Signin successful")
         }catch(err) {
             let errorMessage = "Something went wrong";
@@ -56,11 +60,11 @@ const page = () => {
     }
     return (
         <div className="flex justify-center items-center h-screen">
-            <div className="bg-white rounded-lg shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] w-96 p-4">
+            <div className="bg-card rounded-lg shadow-[0px_2px_3px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] w-96 p-4">
                 <form onSubmit={handleSubmit}>
                     <div className="flex flex-col gap-3">
                         <div className="flex justify-center">
-                            <Logo />
+                            <Logo size={18} />
                         </div>
                         <Heading size="2xl" text="Signin" />
                         <Input placeholder="Email Address" type="email" name="email" id="email" onChange={handleChange} />

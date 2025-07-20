@@ -65,6 +65,9 @@ export default function Signup(){
             })
 
             toast.success("Signup successful")
+            if(formData.email && formData.password){
+                router.push(`/spaces`)
+            }
         }catch(err) {
             let errorMessage = "Something went wrong";
 
@@ -85,7 +88,7 @@ export default function Signup(){
                 <form onSubmit={handleSubmit}>
                     <div className="flex flex-col gap-3">
                         <div className="flex justify-center">
-                            <Logo />
+                            <Logo size={18} />
                         </div>
                         <Heading size="2xl" text="Signup" />
                         <Input placeholder="Full Name" name="name" id="name" onChange={handleChange} />

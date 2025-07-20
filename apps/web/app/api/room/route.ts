@@ -20,7 +20,8 @@ export async function POST(req: NextRequest){
     }
 
     const { name } = reponse.data
-    const nanoidDigits = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 9);
+    const code = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 9);
+    const spaceId = customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 22);
 
     const auth = await authMiddleware(req)
     if(!("authorized" in auth)) return auth;
@@ -28,7 +29,8 @@ export async function POST(req: NextRequest){
         const room = await prisma.room.create({
             data: {
                 name,
-                code: nanoidDigits(),
+                code: code(),
+                spaceId: spaceId(),
                 startDate: new Date(),
                 endDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
                 creatorId: auth.userId
@@ -43,6 +45,7 @@ export async function POST(req: NextRequest){
                 id: true,
                 name: true,
                 code: true,
+                spaceId: true,
                 startDate: true,
                 endDate: true,
                 status: true,
