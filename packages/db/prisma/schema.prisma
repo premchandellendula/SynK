@@ -216,4 +216,6 @@ model QuizParticipant {
   userId   String   @db.Uuid
   name     String
   joinedAt DateTime @default(now())
+
+  @@unique([quizId, userId])
 }

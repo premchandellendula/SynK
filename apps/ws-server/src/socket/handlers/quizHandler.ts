@@ -2,7 +2,83 @@ import { prisma, QuizStatus } from "@repo/db";
 import { Server, Socket } from "socket.io";
 
 export default function quizHandler(io: Server, socket: Socket){
-    socket.on("start-quiz", async (data) => {
+    socket.on("start-quiz", (data) => {
+        if (typeof data === 'string') {
+            try {
+                data = JSON.parse(data);
+            } catch (e) {
+                console.error("Invalid JSON string received:", data);
+                return;
+            }
+        }
+
+        const { quizId, roomId, userId } = data;
+
+        io.to(roomId).emit("quiz-started", {
+            message: "start quiz"
+        })
+        socket.emit("joined-quiz", { quizId })
+    })
+
+    socket.on("join-room", async (data) => {
+        if (typeof data === 'string') {
+            try {
+                data = JSON.parse(data);
+            } catch (e) {
+                console.error("Invalid JSON string received:", data);
+                return;
+            }
+        }
+
+        const { roomId, userId, quizId, name } = data;
+
+        try {
+            const room = await prisma.room.findUnique({
+                where: {
+                    id: roomId
+                }
+            })
+
+            if(!room){
+                throw new Error("Room not found")
+            }
+            
+            if (room.endDate < new Date() || room.status === "ENDED") {
+                throw new Error("Room has already ended. Cannot create quiz.")
+            }
+
+            const quiz = await prisma.quiz.findUnique({
+                where: {
+                    id: quizId
+                }
+            })
+
+            if(!quiz){
+                throw new Error("Quiz not found")
+            }
+            let quizUser = await prisma.quizParticipant.findUnique({
+                where: {
+                    quizId_userId: { quizId, userId }
+                }
+            })
+
+            if (!quizUser) {
+                quizUser = await prisma.quizParticipant.create({
+                    data: { quizId, userId, name }
+                })
+            }
+
+            socket.join(quizId)
+            io.to(quizId).emit("user-joined", {
+                id: quizUser.id,
+                name: quizUser.name
+            })
+        }catch(err) {
+            console.log("Error joining the quiz: ", err);
+            socket.emit("quiz-joining-error", { message: "Could not join the quiz. Try again." });
+        }
+    })
+    socket.on("launch-quiz", async (data) => {
         if (typeof data === 'string') {
             try {
                 data = JSON.parse(data);
