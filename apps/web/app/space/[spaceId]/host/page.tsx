@@ -8,7 +8,7 @@ import QuestionOnAdminPanel from "@/components/cards/QuestionOnAdminPanel";
 import QuestionInput from "@/components/live/QuestionInput";
 import Tabs from "@/components/live/Tabs";
 import HostNavbar from "@/components/navbar/HostNavbar";
-import { Room } from "@/types/types";
+import { Activity, Room } from "@/types/types";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 export default function Host(){
     const { spaceId } = useParams();
     const [roomDetails, setRoomDetails] = useState<Room | null>(null)
+    const [activity, setActivity] = useState<Activity>("qna")
     // console.log(spaceId)
     useEffect(() => {
         async function fetchRoomDetails(){
@@ -37,12 +38,15 @@ export default function Host(){
             <HostNavbar name={roomDetails?.name} startDate={roomDetails?.startDate} endDate={roomDetails?.endDate} code={roomDetails?.code} />
             <div className="w-full flex flex-1 divide-x divide-foreground/10">
                 <div className="w-[30%] p-2">
-                    <ActivityBox />
+                    <ActivityBox activity={activity} setActivity={setActivity} />
                 </div>
                 <div className="flex-1 min-h-screen p-2">
+                    {activity === "qna" && <AdminQuestionBox />}
+                    {activity === "poll" && <AdminPollsBox />}
+                    {activity === "quiz" && <AdminQuizBox />}
                     {/* <AdminQuestionBox /> */}
                     {/* <AdminPollsBox /> */}
-                    <AdminQuizBox />
+                    {/* <AdminQuizBox /> */}
                     {/* <QuestionOnAdminPanel />
                     <QuestionOnAdminPanel />
                     <QuestionOnAdminPanel />

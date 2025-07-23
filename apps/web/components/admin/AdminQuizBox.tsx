@@ -2,7 +2,8 @@ import React from 'react'
 import { MenuItemTab } from './AdminQuestionBox'
 import { Trash2, Trophy } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
-import PollCard from '../cards/PollCard'
+import QuizNameInput from '../quizbuilder/QuizNameInput'
+import QuizQuestionCard from '../quizbuilder/QuizQuestionCard'
 
 const AdminQuizBox = () => {
     return (
@@ -20,6 +21,8 @@ const AdminQuizBox = () => {
                     </TooltipContent>
                 </Tooltip>
             </div>
+            <QuizNameInput />
+            <QuizQuestionCard />
         </div>
     )
 }

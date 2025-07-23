@@ -38,3 +38,5 @@ export type Room = {
     polls: Poll[],
     quizzes: Quiz[]
 }
+
+export type Activity = "qna" | "poll" | "quiz"
