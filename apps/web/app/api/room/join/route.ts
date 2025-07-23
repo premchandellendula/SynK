@@ -70,7 +70,8 @@ export async function POST(req: NextRequest){
             message: "Successfully joined the room",
             roomDate: {
                 roomId: room.id,
-                name: room.name
+                name: room.name,
+                code: room.code
             }
         })
     }catch(err){
