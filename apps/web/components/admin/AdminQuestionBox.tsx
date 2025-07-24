@@ -1,5 +1,5 @@
 import { Archive, ArchiveX, MessageSquareMore } from 'lucide-react'
-import React, { ReactNode, useState } from 'react'
+import React, { ReactNode } from 'react'
 
 const menuItems = [
     {
@@ -13,10 +13,9 @@ const menuItems = [
 ]
 
 const AdminQuestionBox = () => {
-    const [activity, setActivity] = useState<"qna" | "poll" | "quiz">("qna")
     return (
-        <div className='flex justify-between items-center p-4'>
-            <MenuItemTab icon={<MessageSquareMore size={18} className='mt-1' />} label='Audience Q&A' />
+        <div className='flex justify-between items-center h-10'>
+            <MenuItemTab icon={<MessageSquareMore size={20} className='mt-1 text-green-500' />} label='Audience Q&A' />
             <div className='flex items-center gap-4'>
                 {menuItems.map((item, idx) => <MenuItemTab key={idx} icon={item.icon} label={item.label} />)}
             </div>

@@ -39,4 +39,4 @@ export type Room = {
     quizzes: Quiz[]
 }
 
-export type Activity = "qna" | "poll" | "quiz"
+export type Interaction = "qna" | "poll" | "quiz"

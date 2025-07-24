@@ -29,7 +29,8 @@ const QuizQuestionCard = ({onRemove, idx}: {onRemove: (i: number) => void, idx: 
     }
     return (
         <div className='p-2 flex flex-col gap-2 mt-2 shadow-[0px_0px_2px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] border border-input rounded-sm'>
-            <div className='flex justify-end'>
+            <div className='flex justify-between'>
+                <span className='font-medium'>Question {idx + 1}</span>
                 <Tooltip>
                     <div onClick={() => onRemove(idx)} className='p-2 rounded-full'>
                         <TooltipTrigger asChild>

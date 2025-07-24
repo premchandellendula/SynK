@@ -12,9 +12,9 @@ interface IHostNavbar {
 
 const HostNavbar = ({name, startDate, endDate, code}: IHostNavbar) => {
     return (
-        <nav className='w-full flex justify-between items-center border-b border-sidebar-border px-6 py-2'>
+        <nav className='fixed top-0 left-0 right-0 h-15 w-full flex justify-between items-center border-b border-sidebar-border px-6 py-2'>
             <div className='flex items-center gap-3'>
-                <span className='bg-neutral-800 border border-background hover:border-neutral-700 p-2.5 rounded-full mt-1 cursor-pointer'>
+                <span className='bg-secondary border border-background hover:border-muted/20 p-2.5 rounded-full mt-1 cursor-pointer'>
                     <MoveLeft size={16} />
                 </span>
                 <span className='text-xl'>{name}</span>

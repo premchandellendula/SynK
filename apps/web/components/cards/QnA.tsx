@@ -1,7 +1,6 @@
 import { EllipsisVertical, MessageSquareMore } from 'lucide-react'
 import React from 'react'
 import { Button } from '../ui/button'
-import { Activity } from '@/types/types'
 
 const QnA = ({onClick} : {onClick: () => void}) => {
     return (

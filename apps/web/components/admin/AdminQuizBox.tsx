@@ -15,7 +15,7 @@ const AdminQuizBox = () => {
     }
     return (
         <div>
-            <div className='flex justify-between items-center p-2'>
+            <div className='flex justify-between items-center h-10 mb-2'>
                 <MenuItemTab icon={<Trophy size={20} className='mt-1 text-red-500' />} label='Quiz' />
                 <Tooltip>
                     <div className='p-2 rounded-full'>

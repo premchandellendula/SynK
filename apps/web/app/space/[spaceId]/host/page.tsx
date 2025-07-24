@@ -1,14 +1,10 @@
 "use client"
-import ActivityBox from "@/components/admin/ActivityBox";
 import AdminPollsBox from "@/components/admin/AdminPollsBox";
 import AdminQuestionBox from "@/components/admin/AdminQuestionBox";
 import AdminQuizBox from "@/components/admin/AdminQuizBox";
-import QuestionCard from "@/components/cards/QuestionCard";
-import QuestionOnAdminPanel from "@/components/cards/QuestionOnAdminPanel";
-import QuestionInput from "@/components/live/QuestionInput";
-import Tabs from "@/components/live/Tabs";
+import InteractionBox from "@/components/admin/InteractionBox";
 import HostNavbar from "@/components/navbar/HostNavbar";
-import { Activity, Room } from "@/types/types";
+import { Interaction, Room } from "@/types/types";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -16,7 +12,7 @@ import { useEffect, useState } from "react";
 export default function Host(){
     const { spaceId } = useParams();
     const [roomDetails, setRoomDetails] = useState<Room | null>(null)
-    const [activity, setActivity] = useState<Activity>("qna")
+    const [interaction, setInteraction] = useState<Interaction>("qna")
     // console.log(spaceId)
     useEffect(() => {
         async function fetchRoomDetails(){
@@ -34,16 +30,16 @@ export default function Host(){
     if (!roomDetails) return null;
 
     return (
-        <div className="flex flex-col h-screen overflow-hidden">
+        <div className="w-screen h-screen overflow-hidden">
             <HostNavbar name={roomDetails?.name} startDate={roomDetails?.startDate} endDate={roomDetails?.endDate} code={roomDetails?.code} />
-            <div className="w-full flex flex-1 divide-x divide-foreground/10">
-                <div className="w-[30%] p-2">
-                    <ActivityBox setActivity={setActivity} />
+            <div className="h-full pt-15 flex divide-x divide-foreground/10">
+                <div className="w-[30%] relative p-2">
+                    <InteractionBox setInteraction={setInteraction} />
                 </div>
-                <div className="flex-1 min-h-screen p-2">
-                    {activity === "qna" && <AdminQuestionBox />}
-                    {activity === "poll" && <AdminPollsBox />}
-                    {activity === "quiz" && <AdminQuizBox />}
+                <div className="flex-1 relative p-2">
+                    {interaction === "qna" && <AdminQuestionBox />}
+                    {interaction === "poll" && <AdminPollsBox />}
+                    {interaction === "quiz" && <AdminQuizBox />}
                 </div>
             </div>
         </div>

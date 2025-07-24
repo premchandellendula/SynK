@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import QnA from '../cards/QnA'
 import Polls from '../cards/Polls'
 import Quizzes from '../cards/Quizzes'
-import { Activity } from '@/types/types'
+import { Interaction } from '@/types/types'
 import PollImg from '../svgIcons/PollImg'
 import QuizImg from '../svgIcons/QuizImg'
 import Image from 'next/image'
@@ -14,14 +14,14 @@ import ThemeButton from '../theme/ThemeButton'
 const sidebarItems = [
     {
         icon: <Radio />,
-        label: "Activites"
+        label: "Interactions"
     },
     {
         icon: <ChartLine />,
         label: "Analytics"
     },
     {
-        icon: <ThemeButton />,
+        icon: <Sun />,
         label: "Theme"
     }
 ]
@@ -30,7 +30,7 @@ const actItems: {
     img: React.ReactNode;
     icon: React.ReactNode;
     label: string;
-    code: Activity;
+    code: Interaction;
 }[] = [
     {
         img: <PollImg />,
@@ -46,50 +46,51 @@ const actItems: {
     }
 ]
 
-interface IActivityBox {
-    setActivity: (val: Activity) => void;
+interface IInteractionBox {
+    setInteraction: (val: Interaction) => void;
 }
 
-const ActivityBox = ({setActivity}: IActivityBox) => {
-    const [isActivityDialogOpen, setIsActivityDialogOpen] = useState<boolean>(false)
+const InteractionBox = ({setInteraction}: IInteractionBox) => {
+    const [isInteractionDialogOpen, setIsInteractionDialogOpen] = useState<boolean>(false)
 
     return (
         <div className='flex flex-col h-full overflow-hidden'>
-            <div className='h-[8%] flex justify-between items-center '>
-                <span className='text-lg font-medium'>My Activities</span>
+            <div className='h-10 flex justify-between items-center'>
+                <span className='text-lg font-medium'>My Interactions</span>
                 <ChevronsLeft />
                 {/* ChevronsRight, should put when sidebar is closed */}
             </div>
-            <div className='h-[76%]'>
+            <div className='absolute top-10 bottom-12 left-0 right-0 overflow-y-auto p-2'>
                 <Button
                     onClick={() => {
-                        setIsActivityDialogOpen(true)
+                        setIsInteractionDialogOpen(true)
                         document.body.style.overflow = 'hidden'
                     }}
-                className='my-2'>
+                    className='my-2'
+                >
                     <Plus />
                     <span>Add</span>
                 </Button>
-                <QnA onClick={() => setActivity("qna")} />
+                <QnA onClick={() => setInteraction("qna")} />
                 <Polls />
                 <Quizzes />
             </div>
-            <div className=" h-[8%] flex justify-between items-center">
+            <div className="absolute bottom-0 left-0 right-0 h-12 flex justify-between items-center">
                 {sidebarItems.map((item, idx) => <SidebarItem key={idx} icon={item.icon} label={item.label} />)}
             </div>
 
-            {isActivityDialogOpen && (
+            {isInteractionDialogOpen && (
                 <div className="fixed inset-0 min-h-screen w-full flex justify-center items-center z-50 bg-black/80">
                     <div className="bg-white dark:bg-neutral-900 w-fit flex flex-col rounded-md p-8">
                         <div className="flex justify-between mb-2">
-                            <span className="font-semibold">New Activity</span>
+                            <span className="font-semibold">New Interaction</span>
                             <X size={17} className='cursor-pointer' onClick={() => { 
-                                    setIsActivityDialogOpen(!isActivityDialogOpen)
+                                    setIsInteractionDialogOpen(!isInteractionDialogOpen)
                                     document.body.style.overflow = 'unset'
                                 }} />
                         </div>
                         <div className='grid grid-cols-2 gap-3 mt-2'>
-                            {actItems.map((item, idx) => <ActivityCard key={idx} img={item.img} icon={item.icon} label={item.label} code={item.code} setActivity={setActivity} setIsActivityDialogOpen={setIsActivityDialogOpen} />)}
+                            {actItems.map((item, idx) => <InteractionCard key={idx} img={item.img} icon={item.icon} label={item.label} code={item.code} setInteraction={setInteraction} setIsInteractionDialogOpen={setIsInteractionDialogOpen} />)}
                         </div>
                     </div>
                 </div>
@@ -98,26 +99,26 @@ const ActivityBox = ({setActivity}: IActivityBox) => {
     )
 }
 
-function ActivityCard({
+function InteractionCard({
     img,
     icon,
     label,
     code,
-    setActivity,
-    setIsActivityDialogOpen
+    setInteraction,
+    setIsInteractionDialogOpen
 }: {
     img: ReactNode,
     icon: ReactNode,
     label: string,
-    code: Activity,
-    setActivity: (val: Activity) => void,
-    setIsActivityDialogOpen: (val: boolean) => void
+    code: Interaction,
+    setInteraction: (val: Interaction) => void,
+    setIsInteractionDialogOpen: (val: boolean) => void
 }) {
     return (
         <div
         onClick={() => {
-            setActivity(code)
-            setIsActivityDialogOpen(false)
+            setInteraction(code)
+            setIsInteractionDialogOpen(false)
         }}
         className='flex flex-col shadow-[0px_0px_2px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] border border-muted-foreground/20 rounded-sm cursor-pointer hover:border-muted'>
             <div className='bg-muted rounded-t-sm'>
@@ -146,4 +147,4 @@ function SidebarItem({icon, label}: {icon: ReactNode, label: string}){
     )
 }
 
-export default ActivityBox
+export default InteractionBox
