@@ -9,6 +9,7 @@ import { Activity } from '@/types/types'
 import PollImg from '../svgIcons/PollImg'
 import QuizImg from '../svgIcons/QuizImg'
 import Image from 'next/image'
+import ThemeButton from '../theme/ThemeButton'
 
 const sidebarItems = [
     {
@@ -20,7 +21,7 @@ const sidebarItems = [
         label: "Analytics"
     },
     {
-        icon: <Sun />,
+        icon: <ThemeButton />,
         label: "Theme"
     }
 ]
@@ -46,11 +47,10 @@ const actItems: {
 ]
 
 interface IActivityBox {
-    activity: Activity,
     setActivity: (val: Activity) => void;
 }
 
-const ActivityBox = ({activity, setActivity}: IActivityBox) => {
+const ActivityBox = ({setActivity}: IActivityBox) => {
     const [isActivityDialogOpen, setIsActivityDialogOpen] = useState<boolean>(false)
 
     return (
@@ -119,8 +119,8 @@ function ActivityCard({
             setActivity(code)
             setIsActivityDialogOpen(false)
         }}
-        className='flex flex-col shadow-[0px_0px_2px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] border border-neutral-800 rounded-sm cursor-pointer hover:border-neutral-900'>
-            <div className='bg-neutral-950/50 rounded-t-sm'>
+        className='flex flex-col shadow-[0px_0px_2px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] border border-muted-foreground/20 rounded-sm cursor-pointer hover:border-muted'>
+            <div className='bg-muted rounded-t-sm'>
                 {img}
             </div>
             <div className='flex items-center justify-center gap-2 p-2'>

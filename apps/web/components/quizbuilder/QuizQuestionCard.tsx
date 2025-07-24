@@ -4,7 +4,7 @@ import { Minus, Plus, Trash2 } from 'lucide-react'
 import { Button } from '../ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 
-const QuizQuestionCard = () => {
+const QuizQuestionCard = ({onRemove, idx}: {onRemove: (i: number) => void, idx: number}) => {
     const [options, setOptions] = useState(['', '']);
     const [correctAnswerIndex, setCorrectAnswerIndex] = useState<number | null>(null)
 
@@ -28,14 +28,14 @@ const QuizQuestionCard = () => {
         })
     }
     return (
-        <div className='p-2 flex flex-col gap-2 mt-2 shadow-[0px_0px_2px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] border border-neutral-800 rounded-sm'>
+        <div className='p-2 flex flex-col gap-2 mt-2 shadow-[0px_0px_2px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] border border-input rounded-sm'>
             <div className='flex justify-end'>
                 <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div className='hover:bg-neutral-800 p-2 rounded-full'>
-                            <Trash2 size={17} className='hover:text-red-400 cursor-pointer' />
-                        </div>
-                    </TooltipTrigger>
+                    <div onClick={() => onRemove(idx)} className='p-2 rounded-full'>
+                        <TooltipTrigger asChild>
+                                <Trash2 size={17} className='hover:text-red-400 cursor-pointer' />
+                        </TooltipTrigger>
+                    </div>
                     <TooltipContent>
                         Clear question
                     </TooltipContent>

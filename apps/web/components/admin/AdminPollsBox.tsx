@@ -8,13 +8,13 @@ const AdminPollsBox = () => {
     return (
         <div>
             <div className='flex justify-between items-center p-2'>
-                <MenuItemTab icon={<ChartNoAxesColumn size={18} className='mt-1' />} label='Polls' />
+                <MenuItemTab icon={<ChartNoAxesColumn size={18} className='mt-1 text-blue-500' />} label='Polls' />
                 <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div className='hover:bg-neutral-800 p-2 rounded-full'>
-                            <Trash2 size={17} className='hover:text-red-400 cursor-pointer' />
-                        </div>
-                    </TooltipTrigger>
+                    <div className='p-2 rounded-full'>
+                        <TooltipTrigger asChild>
+                                <Trash2 size={17} className='hover:text-red-400 cursor-pointer' />
+                        </TooltipTrigger>
+                    </div>
                     <TooltipContent>
                         Clear all polls
                     </TooltipContent>

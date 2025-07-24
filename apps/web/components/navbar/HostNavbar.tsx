@@ -21,7 +21,7 @@ const HostNavbar = ({name, startDate, endDate, code}: IHostNavbar) => {
             </div>
             <div className='flex items-center gap-4'>
                 <Dates startDate={startDate} endDate={endDate} />
-                <div onClick={() => copyToClipboard(code || "")} className='flex items-center gap-1 hover:bg-neutral-800 hover:text-violet-300 px-2 py-1 rounded-sm cursor-pointer'>
+                <div onClick={() => copyToClipboard(code || "")} className='flex items-center gap-1 hover:bg-secondary/20 hover:text-violet-500 px-2 py-1 rounded-sm cursor-pointer'>
                     <Copy size={14} />
                     <span className='text-sm'>{code}</span>
                 </div>

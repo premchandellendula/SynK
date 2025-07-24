@@ -38,19 +38,12 @@ export default function Host(){
             <HostNavbar name={roomDetails?.name} startDate={roomDetails?.startDate} endDate={roomDetails?.endDate} code={roomDetails?.code} />
             <div className="w-full flex flex-1 divide-x divide-foreground/10">
                 <div className="w-[30%] p-2">
-                    <ActivityBox activity={activity} setActivity={setActivity} />
+                    <ActivityBox setActivity={setActivity} />
                 </div>
                 <div className="flex-1 min-h-screen p-2">
                     {activity === "qna" && <AdminQuestionBox />}
                     {activity === "poll" && <AdminPollsBox />}
                     {activity === "quiz" && <AdminQuizBox />}
-                    {/* <AdminQuestionBox /> */}
-                    {/* <AdminPollsBox /> */}
-                    {/* <AdminQuizBox /> */}
-                    {/* <QuestionOnAdminPanel />
-                    <QuestionOnAdminPanel />
-                    <QuestionOnAdminPanel />
-                    <QuestionOnAdminPanel /> */}
                 </div>
             </div>
         </div>
