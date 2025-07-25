@@ -26,7 +26,7 @@ const SpaceOptions = () => {
             const room = response.data.roomData
             // console.log(room)
             if(room.id){
-                router.push(`/space/${room.spaceId}`)
+                router.push(`/space/${room.spaceId}/host`)
             }
             toast.success("Room created successfully")
         } catch (err) {

@@ -17,9 +17,9 @@ const ThemeButton = () => {
         <button className="flex items-center h-9 w-9 justify-center rounded-full cursor-pointer hover:bg-accent"
         onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
             {theme === "light" ? (
-                <Moon className="h-6 w-6 text-violet-300" />
+                <Moon className="h-6 w-6 text-foreground/80" />
             ) : (
-                <Sun className="h-6 w-6 text-violet-300" />
+                <Sun className="h-6 w-6 text-foreground" />
             )}
         </button>
     )
