@@ -5,8 +5,8 @@ import { ChevronDown } from 'lucide-react'
 
 const QuestionInput = () => {
     return (
-        <div className='mt-4'>
-            <Input className='h-14 text-4xl' placeholder='Type your question' />
+        <div className='mt-4 border border-input rounded-sm p-2'>
+            <Input className='h-14 text-4xl border-none shadow-none focus:ring-0 focus-visible:ring-0 focus:outline-none' placeholder='Type your question' />
             <div className='flex justify-between mt-3'>
                 <div className='flex items-center gap-1'>
                     <div className='h-8 w-8 bg-neutral-500 rounded-full'></div>

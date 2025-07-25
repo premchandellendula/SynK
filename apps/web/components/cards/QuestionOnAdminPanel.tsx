@@ -31,7 +31,7 @@ const QuestionOnAdminPanel = () => {
         <div 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className='relative w-full shadow-[0px_0px_2px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] px-4 py-3 bg-background border-y border-background hover:border-y hover:border-neutral-700'>
+        className='relative w-full shadow-[0px_0px_2px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] px-4 py-3 bg-background border-y border-background hover:border-y hover:border-input'>
             <div className='mb-2 flex justify-between items-center'>
                 <div className='flex items-center gap-2'>
                     <div className='h-6 w-6 bg-neutral-200 rounded-full flex justify-center items-center'>U</div>
