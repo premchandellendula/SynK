@@ -1,29 +1,9 @@
+import { PollStatus, QuestionStatus, QuizStatus, RoomStatus } from "@repo/db"
+
 type User = {
     id: string,
-    name: string
-}
-
-type Poll = {
-    id: string,
-    pollQuestion: string,
-    options: string[],
-    pollVotes: number
-}
-
-type Quiz = {
-    id: string,
-    quizName: string,
-    upVotes: string,
-    sender: User,
-    pollVotes: number
-}
-
-type Question = {
-    id: string,
-    question: string,
-    pollQuestion: string,
-    options: string[],
-    pollVotes: number
+    name: string,
+    email: string
 }
 
 export type Room = {
@@ -32,6 +12,7 @@ export type Room = {
     code: string,
     spaceId: string,
     startDate: string,
+    status: RoomStatus
     endDate: string,
     createdBy: User,
     questions: Question[],
@@ -39,4 +20,117 @@ export type Room = {
     quizzes: Quiz[]
 }
 
+export type Question = {
+    id: string,
+    question: string,
+    senderId: string,
+    roomId: string,
+    upVotes: string[],
+    status: QuestionStatus,
+    createdAt: string,
+    updatedAt: string
+}
+
+export type Poll = {
+    id: string,
+    pollQuestion: string,
+    createdBy: User,
+    roomId: string,
+    options: PollOption[],
+    pollVotes: PollVote[],
+    isLaunched: boolean,
+    status: PollStatus
+}
+
+type PollOption = {
+    id: string,
+    text: string,
+    pollId: string,
+    voteCount: number
+}
+
+export type PollVote = {
+    userId: string;
+    pollId: string;
+    optionId: string;
+};
+
+export type Quiz = {
+    id: string,
+    quizName: string,
+    roomId: string,
+    creatorId: string,
+    status: QuizStatus,
+    currentQuestionId:  string,
+    quizQuestions: QuizQuestion[],
+    quizParticipant: QuizParticipant[]
+}
+
+type QuizQuestion = {
+    id: string,
+    question: string,
+    quizId: string,
+    voteCount: number,
+    quizVotes: QuizVote[],
+    isActive: boolean,
+    isAnsweredRevealed: boolean,
+    timerSeconds: number,
+    quizOptions: QuizOption[]
+}
+
+type QuizOption = {
+    id: string,
+    text: string,
+    quizQuestionId: string,
+    isCorrect: boolean,
+    voteCount: number,
+    quizVotes: QuizVote[]
+}
+
+export type QuizVote = {
+    userId: string;
+    quizQuestionId: string;
+    quizOptionId: string;
+};
+
+export type QuizParticipant = {
+    id: string,
+    quizId: string,
+    userId: string,
+    name: string,
+    joinedAt: string
+}
+
 export type Interaction = "qna" | "poll" | "quiz"
+
+// store
+
+export type QuestionStore = {
+    questions: Question[];
+    setQuestions: (questions: Question[]) => void;
+    addQuestion: (question: Question) => void;
+    toggleVote: (questionId: string, userId: string) => void;
+    updateQuestionStatus: (questionId: string, status: QuestionStatus) => void;
+};
+
+export type PollStore = {
+    polls: Poll[];
+    setPolls: (polls: Poll[]) => void;
+    addPoll: (poll: Poll) => void;
+    launchPoll: (pollId: string) => void;
+    stopPoll: (pollId: string) => void;
+    votePoll: (pollId: string, optionId: string, userId: string) => void;
+}
+
+export type QuizStore = {
+    quizzes: Quiz[],
+    setQuizzes: (quizzes: Quiz[]) => void,
+    addQuiz: (quiz: Quiz) => void,
+    launchQuiz: (quizId: string) => void,
+    joinQuiz: (user: QuizParticipant, quizId: string) => void,
+    setCurrentQuestion: (quizId: string, quizQuestionId: string) => void,
+    submitAnswer: (quizId: string, userId: string, quizQuestionId: string, quizOptionId: string) => void,
+    revealAnswer: (quizId: string, quizQuestionId: string) => void,
+    stopQuiz: (quizId: string) => void,
+    endQuiz: (quizId: string) => void
+}
