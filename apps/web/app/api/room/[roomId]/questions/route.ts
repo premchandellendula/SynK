@@ -51,14 +51,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ roo
             select: {
                 id: true,
                 question: true,
-                createdAt: true,
+                senderId: true,
                 roomId: true,
                 upVotes: true,
                 status: true,
+                createdAt: true,
+                updatedAt: true,
                 sender: {
                     select: {
                         id: true,
-                        name: true
+                        name: true,
+                        email: true
                     }
                 }
             }
@@ -122,7 +125,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ room
                         name: true
                     }
                 }
-            }
+            },
+            orderBy: [
+                { upVotes: { _count: "desc" } },
+                { createdAt: "asc" },
+            ],
         })
 
         return NextResponse.json({

@@ -7,6 +7,7 @@ import registerQuestionVoteHandler from './handlers/registerQuestionVoteHandler'
 import registerPollVoteHandler from './handlers/registerPollVoteHandler';
 import changeQuestionStatusHandler from './handlers/changeQuestionStatusHandler';
 import quizHandler from './handlers/quizHandler';
+import * as cookie from 'cookie'
 
 export async function initializeSocket(server: Server, allowedOrigins: string[]){
     const io = new SocketIOServer(server, {
@@ -19,31 +20,23 @@ export async function initializeSocket(server: Server, allowedOrigins: string[])
 
     io.on('connection', (socket: Socket) => {
         console.log(`Client connected: ${socket.id}`);
-        const token: string | string[] | undefined = socket.handshake.query.token;
-
-        let actualToken: string | undefined;
-
-        if (token === undefined) {
-            console.error("No token provided");
-            actualToken = undefined;
-        } else if (Array.isArray(token)) {
-            console.log(token[0]);
-            actualToken = token[0];
-        } else {
-            console.log(token);
-            actualToken = token;
+        const cookies = socket.handshake.headers.cookie;
+        if (!cookies) {
+            console.error("No cookies sent");
+            socket.disconnect();
+            return;
         }
 
-        let userId;
-        if (actualToken) {
-            userId = authUser(actualToken);
-            console.log(userId);
-        } else {
-            console.error("Token is missing or invalid");
+        const parsedCookies = cookie.parse(cookies);
+        const token = parsedCookies["token"];
+        if (!token) {
+            console.error("Token not found in cookies");
+            socket.disconnect();
+            return;
         }
-
-        if(!userId){
-            socket.disconnect()
+        const userId = authUser(token);
+        if (!userId) {
+            socket.disconnect();
             return;
         }
 

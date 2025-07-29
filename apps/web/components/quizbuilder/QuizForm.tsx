@@ -30,9 +30,9 @@ const QuizForm = () => {
                     </Button>
                 </div>
             </div>
-                <div className="absolute bottom-0 left-0 right-0 h-12 bg-gray-700 flex items-center justify-center">
-                    Section 2 Footer
-                </div>
+            <div className="absolute bottom-0 left-0 right-0 h-12 bg-gray-700 flex items-center justify-center">
+                Section 2 Footer
+            </div>
         </div>
     )
 }

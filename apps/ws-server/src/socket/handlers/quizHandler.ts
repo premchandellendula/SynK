@@ -20,7 +20,7 @@ export default function quizHandler(io: Server, socket: Socket){
         socket.emit("joined-quiz", { quizId })
     })
 
-    socket.on("join-room", async (data) => {
+    socket.on("join-quiz", async (data) => {
         if (typeof data === 'string') {
             try {
                 data = JSON.parse(data);

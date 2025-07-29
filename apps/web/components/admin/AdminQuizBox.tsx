@@ -3,7 +3,6 @@ import { MenuItemTab } from './AdminQuestionBox'
 import { Trash2, Trophy } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import QuizNameInput from '../quizbuilder/QuizNameInput'
-import QuizQuestionCard from '../quizbuilder/QuizQuestionCard'
 import QuizForm from '../quizbuilder/QuizForm'
 
 const AdminQuizBox = () => {

@@ -1,6 +1,6 @@
 import { PollStatus, QuestionStatus, QuizStatus, RoomStatus } from "@repo/db"
 
-type User = {
+export type User = {
     id: string,
     name: string,
     email: string
@@ -25,10 +25,16 @@ export type Question = {
     question: string,
     senderId: string,
     roomId: string,
-    upVotes: string[],
+    upVotes: UpVote[],
     status: QuestionStatus,
     createdAt: string,
-    updatedAt: string
+    updatedAt: string,
+    sender: User
+}
+
+export type UpVote = {
+    userId: string,
+    questionId: string
 }
 
 export type Poll = {
@@ -110,6 +116,7 @@ export type QuestionStore = {
     setQuestions: (questions: Question[]) => void;
     addQuestion: (question: Question) => void;
     toggleVote: (questionId: string, userId: string) => void;
+    setQuestionUpVotes: (questionId: string, upVotes: UpVote[]) => void;
     updateQuestionStatus: (questionId: string, status: QuestionStatus) => void;
 };
 
@@ -133,4 +140,11 @@ export type QuizStore = {
     revealAnswer: (quizId: string, quizQuestionId: string) => void,
     stopQuiz: (quizId: string) => void,
     endQuiz: (quizId: string) => void
+}
+
+export type RoomStore = {
+    roomId: string,
+    name: string,
+    spaceId: string,
+    code: string
 }

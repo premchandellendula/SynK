@@ -49,3 +49,5 @@ const usePollStore = create<PollStore>((set) => ({
             })
         }))
 }))
+
+export default usePollStore;

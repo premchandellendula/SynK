@@ -3,7 +3,7 @@ import AdminQuestionBox from "@/components/admin/AdminQuestionBox";
 import Poll from "@/components/cards/Poll";
 import QuestionCard from "@/components/cards/QuestionCard";
 import QuestionOnAdminPanel from "@/components/cards/QuestionOnAdminPanel";
-import QuestionInput from "@/components/live/QuestionInput";
+import UserQuestionBox from "@/components/live/liveqna/UserQuestionBox";
 import Tabs from "@/components/live/Tabs";
 import UserNavbar from "@/components/navbar/UserNavbar";
 import QuizQuestionCardUser from "@/components/quizTaker/QuizQuestionCardUser";
@@ -34,9 +34,9 @@ export default function Live(){
     return (
         <div className="flex flex-col h-screen">
             <UserNavbar name={roomDetails?.name} />
-            <div className="max-w-4xl w-3xl mx-auto flex-1 p-2 border-x border-input/50">
+            <div className="max-w-4xl w-3xl mx-auto flex-1 p-2 border-x border-input/50 pt-14">
                 <Tabs setInteraction={setInteraction} />
-                {interaction === "qna" && <QuestionInput />}
+                {interaction === "qna" && <UserQuestionBox />}
                 {interaction === "poll" && <Poll />}
                 {interaction === "quiz" && <QuizQuestionCardUser />}
                 {/* <QuestionInput />

@@ -68,10 +68,11 @@ export async function POST(req: NextRequest){
 
         return NextResponse.json({
             message: "Successfully joined the room",
-            roomDate: {
-                roomId: room.id,
+            roomData: {
+                id: room.id,
                 name: room.name,
-                code: room.code
+                code: room.code,
+                spaceId: room.spaceId
             }
         })
     }catch(err){
