@@ -115,6 +115,7 @@ export type QuestionStore = {
     questions: Question[];
     archiveQuestions: Question[];
     ignoredQuestions: Question[];
+    questionCount: number,
     setQuestions: (questions: Question[]) => void;
     setArchiveQuestions: (archiveQuestions: Question[]) => void;
     setIgnoredQuestions: (ignoredQuestions: Question[]) => void;

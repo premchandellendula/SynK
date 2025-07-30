@@ -26,22 +26,21 @@ const liveTabs: {
     }
 ]
 
-const Tabs = ({setInteraction}: {setInteraction: (val: Interaction) => void}) => {
-    const [selectedTab, setSelectedTab] = useState("Q&A")
+const Tabs = ({interaction, setInteraction}: {interaction: Interaction, setInteraction: (val: Interaction) => void}) => {
+
     return (
         <div className='flex py-1 gap-2 border-b border-input'> 
             {liveTabs.map((tab, idx) => (
                 <div key={idx} className='relative'>
                     <div 
                         onClick={() => {
-                            setSelectedTab(tab.name)
                             setInteraction(tab.code)
                         }} 
                         className={`flex gap-1 items-center px-3 py-1 rounded-lg cursor-pointer duration-100 transition-colors`}>
                         {tab.icon}
                         <span className='text-lg text-foreground/80 font-semibold'>{tab.name}</span>
                     </div>
-                    {selectedTab === tab.name && (
+                    {interaction === tab.code && (
                         <motion.div 
                             layoutId="underline"
                             className="absolute -bottom-1 left-0 h-[2px] w-full bg-secondary-foreground"
