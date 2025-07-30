@@ -4,6 +4,7 @@ import "./globals.css";
 import "@repo/ui/styles.css"
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
+import { UserProvider } from "@/providers/UserProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -27,14 +28,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-      <ThemeProvider 
-          attribute="class" 
-          enableSystem
-          defaultTheme="system" 
-        >
-          {children}
-          <Toaster position='bottom-left' />
-        </ThemeProvider>
+        <UserProvider>
+          <ThemeProvider 
+            attribute="class" 
+            enableSystem
+            defaultTheme="system" 
+            >
+            {children}
+            <Toaster position='bottom-left' />
+          </ThemeProvider>
+        </UserProvider>
       </body>
     </html>
   );

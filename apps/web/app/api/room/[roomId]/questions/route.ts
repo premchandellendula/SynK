@@ -51,14 +51,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ roo
             select: {
                 id: true,
                 question: true,
-                createdAt: true,
+                senderId: true,
                 roomId: true,
                 upVotes: true,
                 status: true,
+                createdAt: true,
+                updatedAt: true,
                 sender: {
                     select: {
                         id: true,
-                        name: true
+                        name: true,
+                        email: true
                     }
                 }
             }
@@ -76,15 +79,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ roo
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ roomId: string }> }){
     const { roomId } = await params;
-
-    const searchParams = req.nextUrl.searchParams;
-    const allowedStatuses: QuestionStatus[] = [
-        "PENDING",
-        "ANSWERED",
-        "IGNORED"
-    ];
-    const rawStatus = searchParams.get("status");
-    const status: QuestionStatus = allowedStatuses.includes(rawStatus as QuestionStatus) ? (rawStatus as QuestionStatus) : "PENDING";
 
     try{
         const room = await prisma.room.findUnique({
@@ -104,10 +98,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ room
                 message: "Room has expired."
             }, { status: 400 });
         }
-        const questions = await prisma.question.findMany({
+        const allQuestions = await prisma.question.findMany({
             where: {
-                roomId,
-                status
+                roomId
             },
             select: {
                 id: true,
@@ -122,12 +115,22 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ room
                         name: true
                     }
                 }
-            }
+            },
+            orderBy: [
+                { upVotes: { _count: "desc" } },
+                { createdAt: "asc" },
+            ],
         })
+
+        const questions = allQuestions.filter(q => q.status === QuestionStatus.PENDING);
+        const archiveQuestions = allQuestions.filter(q => q.status === QuestionStatus.ANSWERED);
+        const ignoredQuestions = allQuestions.filter(q => q.status === QuestionStatus.IGNORED);
 
         return NextResponse.json({
             message: "Questions fetched successfully",
-            questions
+            questions,
+            archiveQuestions,
+            ignoredQuestions
         }, {status: 200})
     }catch(err){
         console.log("Error fetching the question: ", err);

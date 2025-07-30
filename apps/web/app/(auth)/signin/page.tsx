@@ -6,6 +6,7 @@ import Heading from "@/components/ui/Heading"
 import { Input } from "@/components/ui/input"
 import Logo from "@/components/ui/Logo"
 import PasswordInput from "@/components/ui/PasswordInput"
+import { useUser } from "@/hooks/useUser"
 import axios from "axios"
 import { useRouter } from "next/navigation"
 import { ChangeEvent, useState } from "react"
@@ -18,7 +19,8 @@ const page = () => {
     })
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
-    const router = useRouter()
+    const router = useRouter();
+    const { login } = useUser();
 
     const canSubmit = formData.email.trim() !== "" && formData.password.trim() !== "";
 
@@ -43,6 +45,7 @@ const page = () => {
             if(formData.email && formData.password){
                 router.push(`/spaces`)
             }
+            login();
 
             toast.success("Signin successful")
         }catch(err) {

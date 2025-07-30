@@ -37,7 +37,7 @@ const Tabs = ({setInteraction}: {setInteraction: (val: Interaction) => void}) =>
                             setSelectedTab(tab.name)
                             setInteraction(tab.code)
                         }} 
-                        className={`flex gap-1 items-center px-3 py-1 rounded-lg cursor-pointer duration-1000 transition-colors`}>
+                        className={`flex gap-1 items-center px-3 py-1 rounded-lg cursor-pointer duration-100 transition-colors`}>
                         {tab.icon}
                         <span className='text-lg text-foreground/80 font-semibold'>{tab.name}</span>
                     </div>

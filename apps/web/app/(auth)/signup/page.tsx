@@ -10,6 +10,7 @@ import { ChangeEvent, useState } from "react";
 import axios from 'axios';
 import { toast } from "sonner";
 import Spinner from "@/components/loaders/Spinner";
+import { useUser } from "@/hooks/useUser";
 
 export default function Signup(){
     const [formData, setFormData] = useState({
@@ -22,6 +23,7 @@ export default function Signup(){
     const [loading, setLoading] = useState(false);
     const [confirmPasswordError, setConfirmPasswordError] = useState("");
     const router = useRouter();
+    const { login } = useUser();
 
     const canSubmit =
         formData.name.trim() !== "" &&
@@ -68,6 +70,7 @@ export default function Signup(){
             if(formData.email && formData.password){
                 router.push(`/spaces`)
             }
+            login()
         }catch(err) {
             let errorMessage = "Something went wrong";
 

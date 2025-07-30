@@ -8,7 +8,6 @@ import Quizzes from '../cards/Quizzes'
 import { Interaction } from '@/types/types'
 import PollImg from '../svgIcons/PollImg'
 import QuizImg from '../svgIcons/QuizImg'
-import Image from 'next/image'
 import ThemeButton from '../theme/ThemeButton'
 
 const sidebarItems = [

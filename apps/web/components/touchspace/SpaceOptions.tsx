@@ -1,7 +1,7 @@
 "use client"
 import { Plus, Users } from 'lucide-react'
 import Image from 'next/image'
-import React, { ChangeEvent, useState } from 'react'
+import React, { useState } from 'react'
 import PollsIcon from '../icons/PollsIcon'
 import AwardIcon from '../icons/AwardIcon'
 import QuestionsIcon from '../icons/QuestionsIcon';
@@ -11,6 +11,7 @@ import CrossIcon from '../icons/CrossIcon'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import useRoomStore from '@/store/roomStore'
 
 const SpaceOptions = () => {
     const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
@@ -18,6 +19,7 @@ const SpaceOptions = () => {
     const [roomName, setRoomName] = useState("");
     const [roomCode, setRoomCode] = useState("");
     const router = useRouter();
+
     const handleRoomCreation = async () => {
         try {
             const response = await axios.post(`/api/room/`, {
@@ -25,9 +27,16 @@ const SpaceOptions = () => {
             }, { withCredentials: true })
             const room = response.data.roomData
             // console.log(room)
-            if(room.id){
+            useRoomStore.getState().setRoom({
+                roomId: room.id,
+                name: room.name,
+                code: room.code,
+                spaceId: room.spaceId
+            });
+            if(room){
                 router.push(`/space/${room.spaceId}/host`)
             }
+            
             toast.success("Room created successfully")
         } catch (err) {
             let errorMessage = "Something went wrong"
@@ -45,12 +54,24 @@ const SpaceOptions = () => {
             const response = await axios.post(`/api/room/join`, {
                 code: roomCode
             }, {withCredentials: true})
-
+            
             const room = response.data.roomData
+            // console.log(response.data.roomData)
+            
+            const roomInfo = {
+                roomId: room.id,
+                code: room.code,
+                spaceId: room.spaceId,
+                name: room.name
+            }
+
+            useRoomStore.getState().setRoom(roomInfo);
             // console.log(room)
-            if(room.id){
+
+            if(room){
                 router.push(`/space/${room.spaceId}/live`)
             }
+            
             toast.success("Joined room successfully")
         }catch(err) {
             let errorMessage = "Something went wrong"

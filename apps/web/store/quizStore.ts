@@ -111,3 +111,5 @@ const useQuizStore = create<QuizStore>((set) => ({
             ))
         })),
 }))
+
+export default useQuizStore;
