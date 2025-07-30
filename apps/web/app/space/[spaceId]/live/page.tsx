@@ -35,14 +35,10 @@ export default function Live(){
         <div className="flex flex-col h-screen">
             <UserNavbar name={roomDetails?.name} />
             <div className="max-w-4xl w-3xl mx-auto flex-1 p-2 border-x border-input/50 pt-14">
-                <Tabs setInteraction={setInteraction} />
+                <Tabs interaction={interaction} setInteraction={setInteraction} />
                 {interaction === "qna" && <UserQuestionBox />}
-                {interaction === "poll" && <Poll />}
-                {interaction === "quiz" && <QuizQuestionCardUser />}
-                {/* <QuestionInput />
-                <QuestionCard />
-                <QuizQuestionCardUser />
-                {/* <UserNameInput /> */}
+                {interaction === "poll" && <Poll setInteraction={setInteraction} />}
+                {interaction === "quiz" && <QuizQuestionCardUser setInteraction={setInteraction} />}
             </div>
         </div>
     )

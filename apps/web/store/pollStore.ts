@@ -51,3 +51,17 @@ const usePollStore = create<PollStore>((set) => ({
 }))
 
 export default usePollStore;
+
+/*
+const usePollStore = create((set) => ({
+  activePoll: null,
+  setActivePoll: (poll) => set({ activePoll: poll }),
+}));
+
+type PollStore = {
+  polls: Poll[];
+  activePoll: Poll | null;
+  setPolls: (polls: Poll[]) => void;
+  setActivePoll: (poll: Poll | null) => void;
+};
+*/
