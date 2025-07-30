@@ -7,15 +7,12 @@ import useRoomStore from '@/store/roomStore';
 import axios from 'axios';
 import React, { useEffect } from 'react'
 import { AnimatePresence, motion } from 'motion/react';
-import { Question } from '@/types/types';
+import QuestionOnAdminPanel from '../cards/QuestionOnAdminPanel';
 
-const Questions = () => {
+const AdminQuestions = () => {
     const questions = useQuestionStore((state) => state.questions)
-    // console.log(questions);
     const addQuestion = useQuestionStore((state) => state.addQuestion);
     const setQuestions = useQuestionStore((state) => state.setQuestions);
-    const setArchiveQuestions = useQuestionStore((state) => state.setArchiveQuestions);
-    const setIgnoredQuestions = useQuestionStore((state) => state.setIgnoredQuestions);
     const socket = useSocket();
     const roomId = useRoomStore((s) => s.room?.roomId);
     const room = useRoomStore((s) => s.room);
@@ -25,7 +22,7 @@ const Questions = () => {
         if (!socket || !roomId || !user?.id) return;
 
         const handleConnect = () => {
-            // console.log("Socket connected, emitting join-room:", { roomId, userId: user.id });
+            console.log("Socket connected, emitting join-room:", { roomId, userId: user.id });
             socket.emit("join-room", { roomId, userId: user.id });
         };
 
@@ -55,27 +52,11 @@ const Questions = () => {
         }
         fetchQuestions();
     }, [roomId, setQuestions])
-    // console.log("Socket status:", socket?.connected, socket);
-
-    useEffect(() => {
-        const handleQStatusUpdate = ({questions, archiveQuestions, ignoredQuestions}: {questions: Question[], archiveQuestions: Question[], ignoredQuestions: Question[]}) => {
-            setQuestions(questions)
-            setArchiveQuestions(archiveQuestions)
-            setIgnoredQuestions(ignoredQuestions)
-        };
-        
-        socket.on("question-status-changed", handleQStatusUpdate);
-        
-        return () => {
-            socket.off("question-status-changed", handleQStatusUpdate);
-        };
-    }, [socket, setQuestions, setArchiveQuestions, setIgnoredQuestions]);
+    console.log("Socket status:", socket?.connected, socket);
 
     useEffect(() => {
         if(!roomId || !socket) return;
         const handleNewQuestion = (data: any) => {
-            // console.log('Received new question:', data);
-            // alert("hi")
 
             if (data.userId !== user?.id) {
                 addQuestion(data.question);
@@ -102,10 +83,10 @@ const Questions = () => {
     return (
         <motion.div layout>
             <AnimatePresence>
-                {questions.map((q) => <QuestionCard key={q.id} question={q} />)}
+                {questions.map((q) => <QuestionOnAdminPanel key={q.id} question={q} />)}
             </AnimatePresence>
         </motion.div>
     )
 }
 
-export default Questions
+export default AdminQuestions

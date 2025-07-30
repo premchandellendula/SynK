@@ -113,8 +113,15 @@ export type Interaction = "qna" | "poll" | "quiz"
 
 export type QuestionStore = {
     questions: Question[];
+    archiveQuestions: Question[];
+    ignoredQuestions: Question[];
     setQuestions: (questions: Question[]) => void;
+    setArchiveQuestions: (archiveQuestions: Question[]) => void;
+    setIgnoredQuestions: (ignoredQuestions: Question[]) => void;
     addQuestion: (question: Question) => void;
+    archiveQuestion: (questionId: string) => void;
+    ignoreQuestion: (questionId: string) => void;
+    removeQuestion: (questionId: string) => void;
     toggleVote: (questionId: string, userId: string) => void;
     setQuestionUpVotes: (questionId: string, upVotes: UpVote[]) => void;
     updateQuestionStatus: (questionId: string, status: QuestionStatus) => void;

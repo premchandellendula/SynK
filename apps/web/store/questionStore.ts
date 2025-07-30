@@ -4,12 +4,21 @@ import { create } from "zustand"
 
 const useQuestionStore = create<QuestionStore>((set) => ({
     questions: [],
+    archiveQuestions: [],
+    ignoredQuestions: [],
     setQuestions: (questions: Question[]) => set({
             questions: questions.map((q) => ({
                 ...q,
                 upVotes: q.upVotes ?? [],
             })),
         }),
+    setArchiveQuestions: (archiveQuestions: Question[]) => set({ 
+            archiveQuestions: archiveQuestions.map((q) => ({
+                ...q,
+                upVotes: q.upVotes ?? []
+            })) 
+        }),
+    setIgnoredQuestions: (ignoredQuestions: Question[]) => set({ ignoredQuestions: ignoredQuestions }),
     addQuestion: (question: Question) =>
         set((state) => ({
             questions: [...state.questions, {
@@ -17,6 +26,30 @@ const useQuestionStore = create<QuestionStore>((set) => ({
                     upVotes: question.upVotes ?? [],
                 },],
         })),
+    archiveQuestion: (questionId: string) =>
+        set((state) => {
+            const questionToArchive = state.questions.find(q => q.id === questionId)
+            if(!questionToArchive) return state;
+            return {
+                questions: state.questions.filter(q => q.id !== questionId),
+                archiveQuestions: [...state.archiveQuestions, questionToArchive]
+            }
+        }),
+    ignoreQuestion: (questionId: string) =>
+        set((state) => {
+            const questionToIgnore = state.questions.find(q => q.id === questionId)
+            if(!questionToIgnore) return state;
+            return {
+                questions: state.questions.filter(q => q.id !== questionId),
+                ignoredQuestions: [...state.ignoredQuestions, questionToIgnore]
+            }
+        }),
+    removeQuestion: (questionId: string) =>
+        set((state) => {
+            return {
+                questions: state.questions.filter(q => q.id !== questionId),
+            }
+        }),
     toggleVote: (questionId: string, userId: string) => 
         set((state) => ({
             questions: state.questions.map((q) => {
@@ -48,3 +81,29 @@ const useQuestionStore = create<QuestionStore>((set) => ({
 
 export default useQuestionStore;
 
+
+/*
+const useQuestionStore = create((set) => ({
+  questions: [],
+  archiveQuestions: [],
+  ignoredQuestions: [],
+
+  setQuestions: (questions) => set({ questions }),
+  setArchiveQuestions: (archiveQs) => set({ archiveQuestions: archiveQs }),
+  setIgnoredQuestions: (ignoredQs) => set({ ignoredQuestions: ignoredQs }),
+
+  addQuestion: (question) => set((state) => ({ questions: [...state.questions, question] })),
+  archiveQuestion: (questionId) => set((state) => {
+    const questionToArchive = state.questions.find(q => q.id === questionId);
+    if (!questionToArchive) return state;
+
+    return {
+      questions: state.questions.filter(q => q.id !== questionId),
+      archiveQuestions: [...state.archiveQuestions, questionToArchive]
+    }
+  }),
+
+  // similar for ignoredQuestion, removeQuestion, etc.
+}));
+
+*/

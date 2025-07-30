@@ -1,4 +1,4 @@
-import { Check, ThumbsUp, X } from 'lucide-react'
+import { Check, ThumbsUp, Undo, X } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { AnimatePresence, easeIn, easeOut, motion } from 'motion/react';
@@ -11,24 +11,20 @@ import useRoomStore from '@/store/roomStore';
 import { useUser } from '@/hooks/useUser';
 import { toast } from 'sonner';
 
-const adminActions = [
+const icons = [
     {
-        icon: <Check size={16} />,
-        tooltip: "Mark as answered",
-        statusKey: QuestionStatus.ANSWERED
-    },
-    {
-        icon: <X size={16} />,
-        tooltip: "Ignore",
-        statusKey: QuestionStatus.IGNORED
+        icon: <Undo size={16} />,
+        tooltip: "Undo the question",
+        statusKey: QuestionStatus.PENDING
     }
 ]
-const QuestionOnAdminPanel = ({question}: {question: Question}) => {
+const ReviewedQuestionCard = ({question}: {question: Question}) => {
     const [isHovered, setIsHovered] = useState(false);
     const { setQuestions, setArchiveQuestions, setIgnoredQuestions } = useQuestionStore();
     const socket = useSocket();
     const roomId = useRoomStore((s) => s.room?.roomId)
     const {user} = useUser();
+
     useEffect(() => {
         const handleVoteUpdate = ({questions}: {questions: Question[]}) => {
             // console.log("vote-question-updated received:", questions);
@@ -103,7 +99,8 @@ const QuestionOnAdminPanel = ({question}: {question: Question}) => {
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            className='relative w-full shadow-[0px_0px_2px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] px-4 py-3 bg-background border-y border-background hover:border-y hover:border-input'>
+            className='relative w-full shadow-[0px_0px_2px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] px-4 py-3 bg-input/30 border-y border-input/20 hover:border-y hover:border-input/70'
+        >
             <div className='mb-2 flex justify-between items-center'>
                 <div className='flex items-center gap-2'>
                     <div className='h-6 w-6 bg-input rounded-full flex justify-center items-center'>{question.sender.name[0]?.toUpperCase()}</div>
@@ -127,7 +124,7 @@ const QuestionOnAdminPanel = ({question}: {question: Question}) => {
                     variants={divVariant}
                     transition={{ duration: 0.1 }}
                     className='absolute bg-input/30 right-14 top-2 shadow-[0px_0px_2px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] rounded-full flex gap-1.5 px-3 py-1'>
-                        {adminActions.map((icon, idx) => (
+                        {icons.map((icon, idx) => (
                             <div key={idx} className='hover:bg-input/60 px-2 py-2 rounded-full flex justify-center items-center cursor-pointer'>
                                 <Tooltip>
                                     <TooltipTrigger>
@@ -151,4 +148,4 @@ const QuestionOnAdminPanel = ({question}: {question: Question}) => {
     )
 }
 
-export default QuestionOnAdminPanel
+export default ReviewedQuestionCard

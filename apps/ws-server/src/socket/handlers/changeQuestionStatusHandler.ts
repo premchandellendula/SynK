@@ -1,19 +1,14 @@
-import { prisma } from "@repo/db";
+import { prisma, QuestionStatus } from "@repo/db";
 import { Server, Socket } from "socket.io";
 
 export default function changeQuestionStatusHandler(io: Server, socket: Socket){
-    socket.on("change-question-status", async (data) => {
-        if (typeof data === 'string') {
-            try {
-                data = JSON.parse(data);
-            } catch (e) {
-                console.error("Invalid JSON string received:", data);
-                return;
-            }
-        }
-        
+    socket.on("change-question-status", async (data) => {        
         const { roomId, questionId, status, userId } = data;
         // might get an issue for userId
+        if (!userId) {
+            socket.emit("question-status-error", { message: "Invalid user ID." });
+            return;
+        }
 
         try {
             const question = await prisma.question.findUnique({
@@ -42,11 +37,11 @@ export default function changeQuestionStatusHandler(io: Server, socket: Socket){
                 throw new Error("Room not found")
             }
 
-            if(room.creatorId != userId){
+            if(room.creatorId !== userId){
                 throw new Error("Only the room owner can change question status.")
             }
 
-            const updatedQuestion = await prisma.question.update({
+            await prisma.question.update({
                 where: {
                     id: questionId
                 },
@@ -55,13 +50,32 @@ export default function changeQuestionStatusHandler(io: Server, socket: Socket){
                 }
             })
 
+            const allQuestions = await prisma.question.findMany({
+                where: {
+                    roomId
+                },
+                include: {
+                    sender: true,
+                    upVotes: true
+                },
+                orderBy: [
+                    { upVotes: { _count: "desc"}},
+                    { createdAt: "asc"}
+                ]
+            })
+
+            const questions = allQuestions.filter(q => q.status === QuestionStatus.PENDING);
+            const archiveQuestions = allQuestions.filter(q => q.status === QuestionStatus.ANSWERED);
+            const ignoredQuestions = allQuestions.filter(q => q.status === QuestionStatus.IGNORED);
+
             io.to(roomId).emit("question-status-changed", {
-                questionId,
-                updatedQuestion
+                questions,
+                archiveQuestions,
+                ignoredQuestions
             })
 
         }catch(err) {
-            console.error("Error handling vote-question:", err);
+            console.error("Error handling change-question-status:", err);
             socket.emit("question-status-error", { message: "Could not update status. Try again." });
         }
     })
