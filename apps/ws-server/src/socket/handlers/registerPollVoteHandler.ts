@@ -3,14 +3,6 @@ import { Server, Socket } from "socket.io";
 
 export default function registerPollVoteHandler(io: Server, socket: Socket){
     socket.on("vote-poll", async (data) => {
-        if (typeof data === 'string') {
-            try {
-                data = JSON.parse(data);
-            } catch (e) {
-                console.error("Invalid JSON string received:", data);
-                return;
-            }
-        }
         // console.log(data);
         const { pollId, userId, roomId, optionId } = data;
 
@@ -26,7 +18,7 @@ export default function registerPollVoteHandler(io: Server, socket: Socket){
             }
 
             if (room.endDate < new Date() || room.status === "ENDED") {
-                    throw new Error("Room has expired.")
+                throw new Error("Room has expired.")
             }
 
             const existingPoll = await prisma.poll.findUnique({

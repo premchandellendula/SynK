@@ -58,8 +58,8 @@ export async function POST(req: NextRequest, { params }: { params : Promise<{roo
                 pollQuestion,
                 creatorId: auth.userId,
                 roomId,
-                isLaunched: true,
-                status: "LAUNCHED",
+                isLaunched: false,
+                status: "DRAFT",
                 options: {
                     create: options.map(opt => ({
                         text: opt.text,

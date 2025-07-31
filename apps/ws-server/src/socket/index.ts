@@ -8,6 +8,7 @@ import registerPollVoteHandler from './handlers/registerPollVoteHandler';
 import changeQuestionStatusHandler from './handlers/changeQuestionStatusHandler';
 import quizHandler from './handlers/quizHandler';
 import * as cookie from 'cookie'
+import pollHandler from './handlers/pollHandler';
 
 export async function initializeSocket(server: Server, allowedOrigins: string[]){
     const io = new SocketIOServer(server, {
@@ -45,6 +46,7 @@ export async function initializeSocket(server: Server, allowedOrigins: string[])
         sendQuestionHandler(io, socket);
         registerQuestionVoteHandler(io, socket);
         changeQuestionStatusHandler(io, socket);
+        pollHandler(io, socket);
         registerPollVoteHandler(io, socket);
         quizHandler(io, socket);
 

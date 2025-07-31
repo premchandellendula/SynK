@@ -52,7 +52,7 @@ const AdminQuestions = () => {
         }
         fetchQuestions();
     }, [roomId, setQuestions])
-    console.log("Socket status:", socket?.connected, socket);
+    // console.log("Socket status:", socket?.connected, socket);
 
     useEffect(() => {
         if(!roomId || !socket) return;

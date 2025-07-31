@@ -115,7 +115,6 @@ function ArchiveSidebar({setIsArchiveBoxOpen}: {setIsArchiveBoxOpen: (val: boole
                         <ReviewedQuestionCard key={idx} question={q} />
                     ))
                 )}
-
             </div>
         </motion.div>
     )

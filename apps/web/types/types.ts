@@ -130,7 +130,9 @@ export type QuestionStore = {
 
 export type PollStore = {
     polls: Poll[];
+    activePoll: Poll | null,
     setPolls: (polls: Poll[]) => void;
+    setActivePoll: (poll: Poll | null) => void;
     addPoll: (poll: Poll) => void;
     launchPoll: (pollId: string) => void;
     stopPoll: (pollId: string) => void;
