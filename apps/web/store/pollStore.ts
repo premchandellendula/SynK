@@ -1,10 +1,12 @@
-import { Poll, PollStore, PollVote } from "@/types/types";
+import { Poll, PollOption, PollStore, PollVote } from "@/types/types";
 import { PollStatus } from "@repo/db";
 import { create } from "zustand";
 
 const usePollStore = create<PollStore>((set) => ({
     polls: [],
+    activePoll: null,
     setPolls: (polls: Poll[]) => set({polls}),
+    setActivePoll: (poll) => set({ activePoll: poll }),
     addPoll: (poll: Poll) => 
         set((state) => ({
             polls: [...state.polls, poll]
@@ -21,6 +23,12 @@ const usePollStore = create<PollStore>((set) => ({
         set((state) => ({
             polls: state.polls.map((p) =>
                 p.id === pollId ? { ...p, status: PollStatus.ENDED } : p
+            ),
+        })),
+    removePoll: (pollId: string) => 
+        set((state) => ({
+            polls: state.polls.filter((p) =>
+                p.id !== pollId
             ),
         })),
     votePoll: (pollId: string, optionId: string, userId: string) =>
@@ -47,21 +55,41 @@ const usePollStore = create<PollStore>((set) => ({
 
                 return {...p, pollVotes: updatedVotes}
             })
-        }))
+        })),
+    updateOptionVotes: (pollId: string, optionVotes: PollOption[]) =>
+        set((state): Partial<PollStore> => {
+            const updatedPolls = state.polls.map((poll) =>
+                poll.id === pollId
+                    ? {
+                        ...poll,
+                        options: poll.options.map((option) => {
+                            const updated = optionVotes.find((o) => o.id === option.id);
+                            return updated
+                                ? { ...option, voteCount: updated.voteCount }
+                                : { ...option };
+                        }),
+                    }
+                    : poll
+            );
+
+            const updatedActivePoll =
+                state.activePoll?.id === pollId
+                    ? {
+                        ...state.activePoll,
+                        options: state.activePoll.options.map((option) => {
+                            const updated = optionVotes.find((o) => o.id === option.id);
+                            return updated
+                                ? { ...option, voteCount: updated.voteCount }
+                                : { ...option };
+                        }),
+                    }
+                    : state.activePoll;
+
+            return {
+                polls: updatedPolls,
+                activePoll: updatedActivePoll,
+            };
+        }),
 }))
 
 export default usePollStore;
-
-/*
-const usePollStore = create((set) => ({
-  activePoll: null,
-  setActivePoll: (poll) => set({ activePoll: poll }),
-}));
-
-type PollStore = {
-  polls: Poll[];
-  activePoll: Poll | null;
-  setPolls: (polls: Poll[]) => void;
-  setActivePoll: (poll: Poll | null) => void;
-};
-*/

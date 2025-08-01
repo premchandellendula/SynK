@@ -71,7 +71,7 @@ const InteractionBox = ({setInteraction}: IInteractionBox) => {
                     <span>Add</span>
                 </Button>
                 <QnA onClick={() => setInteraction("qna")} />
-                <Polls />
+                <Polls setInteraction={setInteraction} />
                 <Quizzes />
             </div>
             <div className="absolute bottom-0 left-0 right-0 h-12 flex justify-between items-center">

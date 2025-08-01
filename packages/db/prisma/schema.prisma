@@ -112,7 +112,7 @@ enum PollStatus {
 model PollOption {
   id        String     @id @default(uuid()) @db.Uuid
   text      String
-  poll      Poll       @relation(fields: [pollId], references: [id])
+  poll      Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
   pollId    String     @db.Uuid
   voteCount Int
   pollVotes PollVote[]
@@ -120,11 +120,11 @@ model PollOption {
 
 model PollVote {
   id       String     @id @default(uuid()) @db.Uuid
-  poll     Poll       @relation(fields: [pollId], references: [id])
+  poll     Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
   pollId   String     @db.Uuid
-  option   PollOption @relation(fields: [optionId], references: [id])
+  option   PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
   optionId String     @db.Uuid
-  user     User       @relation("UserPollVotes", fields: [userId], references: [id])
+  user     User       @relation("UserPollVotes", fields: [userId], references: [id], onDelete: Cascade)
   userId   String     @db.Uuid
 
   @@unique([userId, pollId])

@@ -48,7 +48,7 @@ export type Poll = {
     status: PollStatus
 }
 
-type PollOption = {
+export type PollOption = {
     id: string,
     text: string,
     pollId: string,
@@ -130,11 +130,15 @@ export type QuestionStore = {
 
 export type PollStore = {
     polls: Poll[];
+    activePoll: Poll | null,
     setPolls: (polls: Poll[]) => void;
+    setActivePoll: (poll: Poll | null) => void;
     addPoll: (poll: Poll) => void;
     launchPoll: (pollId: string) => void;
     stopPoll: (pollId: string) => void;
+    removePoll: (pollId: string) => void;
     votePoll: (pollId: string, optionId: string, userId: string) => void;
+    updateOptionVotes: (pollId: string, updatedOptions: PollOption[]) => void;
 }
 
 export type QuizStore = {
