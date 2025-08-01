@@ -1,4 +1,4 @@
-import { Poll, PollStore, PollVote } from "@/types/types";
+import { Poll, PollOption, PollStore, PollVote } from "@/types/types";
 import { PollStatus } from "@repo/db";
 import { create } from "zustand";
 
@@ -49,26 +49,31 @@ const usePollStore = create<PollStore>((set) => ({
 
                 return {...p, pollVotes: updatedVotes}
             })
+        })),
+    updateOptionVotes: (pollId: string, optionVotes: PollOption[]) => 
+        set((state) => ({
+            polls: state.polls.map((poll) => 
+                poll.id === pollId
+                    ? {
+                        ...poll,
+                        options: poll.options.map((option) => {
+                            const updated = optionVotes.find((o) => o.id === option.id);
+                            return updated ? { ...option, voteCount: updated.voteCount } : option;
+                        }),
+                    }
+                    : poll
+            ),
+            activePoll: 
+                state.activePoll?.id === pollId
+                    ? {
+                        ...state.activePoll,
+                        options: state.activePoll.options.map((option) => {
+                            const updated = optionVotes.find((o) => o.id === option.id);
+                            return updated ? { ...option, voteCount: updated.voteCount } : option;
+                        }),
+                    }
+                    : state.activePoll,
         }))
 }))
 
 export default usePollStore;
-
-/*
-const usePollStore = create((set) => ({
-  activePoll: null,
-  setActivePoll: (poll) => set({ activePoll: poll }),
-}));
-
-type PollStore = {
-  polls: Poll[];
-  activePoll: Poll | null;
-  setPolls: (polls: Poll[]) => void;
-  setActivePoll: (poll: Poll | null) => void;
-};
-*/
-
-/*
-no even for socket events, there will "add-poll" which takes the poll data(question, options, roomId) and creates a poll and add to the polls[] store, the socket event "launch-new-poll" takes the data(question, options, roomId) and it will set the status to Launched and emits to everyone, and there will be another event "launch-existing-poll" which takes the data(pollId) and sets the status to launched and broadcasts to everyone, then there will be "vote-poll"(takes pollId, optionId) and there is "end-poll"(takes roomId, pollId), and "remove-poll", the things in "" are events.
-
-*/

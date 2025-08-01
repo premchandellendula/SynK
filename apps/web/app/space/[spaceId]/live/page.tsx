@@ -1,13 +1,14 @@
 "use client"
-import AdminQuestionBox from "@/components/admin/AdminQuestionBox";
-import Poll from "@/components/cards/Poll";
-import QuestionCard from "@/components/cards/QuestionCard";
-import QuestionOnAdminPanel from "@/components/cards/QuestionOnAdminPanel";
+import UserPoll from "@/components/cards/UserPoll";
 import UserQuestionBox from "@/components/live/liveqna/UserQuestionBox";
 import Tabs from "@/components/live/Tabs";
 import UserNavbar from "@/components/navbar/UserNavbar";
 import QuizQuestionCardUser from "@/components/quizTaker/QuizQuestionCardUser";
-import UserNameInput from "@/components/quizTaker/UserNameInput";
+import { useJoinRoomSocket } from "@/hooks/useJoinRoomSocket";
+import { useSocket } from "@/hooks/useSocket";
+import { useUser } from "@/hooks/useUser";
+import usePollStore from "@/store/pollStore";
+import useRoomStore from "@/store/roomStore";
 import { Interaction, Room } from "@/types/types";
 import axios from "axios";
 import { useParams } from "next/navigation";
@@ -18,26 +19,59 @@ export default function Live(){
     const [roomDetails, setRoomDetails] = useState<Room | null>(null)
     const [interaction, setInteraction] = useState<Interaction>("qna")
     // console.log(spaceId)
+    const roomId = useRoomStore((state) => state.room?.roomId)
+    const { user } = useUser();
+    const socket = useSocket();
+    const { setActivePoll } = usePollStore();
+
+    useJoinRoomSocket({ socket, roomId, userId: user?.id })
     useEffect(() => {
         async function fetchRoomDetails(){
-            const response = await axios.get(`/api/room/space/${spaceId}`, {
-                withCredentials: true
-            })
-
-            setRoomDetails(response.data.room)
-            // console.log(response.data)
+            try {
+                const response = await axios.get(`/api/room/space/${spaceId}`, {
+                    withCredentials: true,
+                });
+                setRoomDetails(response.data.room);
+            } catch (err) {
+                console.error("Error fetching room details:", err);
+            }
         } 
 
         fetchRoomDetails()
-    }, [])
+    }, [spaceId])
+
+    useEffect(() => {
+        if (!roomId) return;
+
+        const fetchActivePoll = async () => {
+            try {
+                const response = await axios.get(`/api/room/${roomId}/polls/active`, {
+                    withCredentials: true
+                });
+                const poll = response.data.poll;
+                if (poll) {
+                    setActivePoll(poll);
+                    setInteraction("poll");
+                }
+            } catch (err) {
+                console.error("Failed to fetch active poll:", err);
+            }
+        };
+
+        const timeout = setTimeout(() => {
+            fetchActivePoll();
+        }, 300);
+
+        return () => clearTimeout(timeout);
+    }, [roomId, setActivePoll]);
 
     return (
         <div className="flex flex-col h-screen">
             <UserNavbar name={roomDetails?.name} />
             <div className="max-w-4xl w-3xl mx-auto flex-1 p-2 border-x border-input/50 pt-14">
                 <Tabs interaction={interaction} setInteraction={setInteraction} />
-                {interaction === "qna" && <UserQuestionBox />}
-                {interaction === "poll" && <Poll setInteraction={setInteraction} />}
+                {interaction === "qna" && <UserQuestionBox setInteraction={setInteraction} />}
+                {interaction === "poll" && <UserPoll setInteraction={setInteraction} />}
                 {interaction === "quiz" && <QuizQuestionCardUser setInteraction={setInteraction} />}
             </div>
         </div>

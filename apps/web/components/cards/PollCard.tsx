@@ -77,7 +77,7 @@ const PollCard = () => {
             socket.off("connect", attachListener);
         };
     }, [socket]);
-
+    
     const handleAddNewPoll = async () => {
         if (!pollQuestion.trim() || options.some(opt => !opt.trim())) {
             toast.warning("Please fill all the fields before adding the poll");
@@ -204,7 +204,8 @@ const PollCard = () => {
 }
 
 function ActivePollCard(){
-    const { activePoll } = usePollStore();
+    const { activePoll, updateOptionVotes } = usePollStore();
+    const socket = useSocket();
     if(!activePoll) return;
     // console.log(activePoll.options);
     if(!activePoll.options) return;
@@ -213,6 +214,17 @@ function ActivePollCard(){
         (acc, opt) => acc + (opt.voteCount || 0),
         0
     );
+
+    useEffect(() => {
+        const handlePollVoteAdded = ({pollId, optionVotes}: {pollId: string, optionVotes: typeof activePoll.options}) => {
+            updateOptionVotes(pollId, optionVotes);
+        };
+        socket.on("poll-vote-added", handlePollVoteAdded)
+
+        return () => {
+            socket.off("poll-vote-added", handlePollVoteAdded)
+        }
+    }, [socket, updateOptionVotes, activePoll?.id])
 
     return (
         <>
@@ -227,7 +239,7 @@ function ActivePollCard(){
                         <div key={i} className='flex flex-col gap-1.5 w-full border border-input p-4 rounded-sm'>
                             <div className='flex justify-between text-sm text-foreground/80'>
                                 <span className='text-base truncate max-w-[70%]' title={option.text}>{option.text}</span>
-                                <span>{Math.round(percentage)}%</span>
+                                <span>{option.voteCount} votes • {Math.round(percentage)}%</span>
                             </div>
                             <div className='relative w-full h-3 bg-secondary rounded-sm overflow-hidden'>
                                 <div
