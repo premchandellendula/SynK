@@ -136,6 +136,7 @@ export type PollStore = {
     addPoll: (poll: Poll) => void;
     launchPoll: (pollId: string) => void;
     stopPoll: (pollId: string) => void;
+    removePoll: (pollId: string) => void;
     votePoll: (pollId: string, optionId: string, userId: string) => void;
     updateOptionVotes: (pollId: string, updatedOptions: PollOption[]) => void;
 }

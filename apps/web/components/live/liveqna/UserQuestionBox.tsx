@@ -42,6 +42,32 @@ const UserQuestionBox = ({setInteraction}: {setInteraction: (val: Interaction) =
             socket.off("connect", attachListener);
         };
     }, [socket]);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleLaunchExistingPoll = (data: { poll: Poll}) => {
+            console.log("🚀 Received existing-poll-launched:", data);
+            const { poll } = data;
+            setActivePoll(poll);
+            setInteraction("poll")
+        };
+
+        const attachListener = () => {
+            socket.on("existing-poll-launched", handleLaunchExistingPoll);
+        };
+
+        if (socket.connected) {
+            attachListener();
+        }
+
+        socket.on("connect", attachListener);
+
+        return () => {
+            socket.off("existing-poll-launched", handleLaunchExistingPoll);
+            socket.off("connect", attachListener);
+        };
+    }, [socket]);
     
     return (
         <div>

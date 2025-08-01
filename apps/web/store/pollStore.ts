@@ -25,6 +25,12 @@ const usePollStore = create<PollStore>((set) => ({
                 p.id === pollId ? { ...p, status: PollStatus.ENDED } : p
             ),
         })),
+    removePoll: (pollId: string) => 
+        set((state) => ({
+            polls: state.polls.filter((p) =>
+                p.id !== pollId
+            ),
+        })),
     votePoll: (pollId: string, optionId: string, userId: string) =>
         set((state) => ({
             polls: state.polls.map((p) => {
@@ -50,30 +56,40 @@ const usePollStore = create<PollStore>((set) => ({
                 return {...p, pollVotes: updatedVotes}
             })
         })),
-    updateOptionVotes: (pollId: string, optionVotes: PollOption[]) => 
-        set((state) => ({
-            polls: state.polls.map((poll) => 
+    updateOptionVotes: (pollId: string, optionVotes: PollOption[]) =>
+        set((state): Partial<PollStore> => {
+            const updatedPolls = state.polls.map((poll) =>
                 poll.id === pollId
                     ? {
                         ...poll,
                         options: poll.options.map((option) => {
                             const updated = optionVotes.find((o) => o.id === option.id);
-                            return updated ? { ...option, voteCount: updated.voteCount } : option;
+                            return updated
+                                ? { ...option, voteCount: updated.voteCount }
+                                : { ...option };
                         }),
                     }
                     : poll
-            ),
-            activePoll: 
+            );
+
+            const updatedActivePoll =
                 state.activePoll?.id === pollId
                     ? {
                         ...state.activePoll,
                         options: state.activePoll.options.map((option) => {
                             const updated = optionVotes.find((o) => o.id === option.id);
-                            return updated ? { ...option, voteCount: updated.voteCount } : option;
+                            return updated
+                                ? { ...option, voteCount: updated.voteCount }
+                                : { ...option };
                         }),
                     }
-                    : state.activePoll,
-        }))
+                    : state.activePoll;
+
+            return {
+                polls: updatedPolls,
+                activePoll: updatedActivePoll,
+            };
+        }),
 }))
 
 export default usePollStore;

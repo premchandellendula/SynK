@@ -9,5 +9,9 @@ export const getSocket = (): Socket => {
             withCredentials: true
         })
     }
+
+    if (!socket.connected) {
+        socket.connect();
+    }
     return socket;
 }

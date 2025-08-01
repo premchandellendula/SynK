@@ -10,7 +10,7 @@ import { toast } from 'sonner'
 import { useSocket } from '@/hooks/useSocket'
 import { useUser } from '@/hooks/useUser'
 import Spinner from '../loaders/Spinner'
-import { Poll } from '@/types/types'
+import { Poll, PollOption } from '@/types/types'
 import { useJoinRoomSocket } from '@/hooks/useJoinRoomSocket'
 
 const PollCard = () => {
@@ -77,6 +77,31 @@ const PollCard = () => {
             socket.off("connect", attachListener);
         };
     }, [socket]);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleLaunchExistingPoll = (data: { poll: Poll}) => {
+            console.log("🚀 Received existing-poll-launched:", data);
+            const { poll } = data;
+            setActivePoll(poll);
+        };
+
+        const attachListener = () => {
+            socket.on("existing-poll-launched", handleLaunchExistingPoll);
+        };
+
+        if (socket.connected) {
+            attachListener();
+        }
+
+        socket.on("connect", attachListener);
+
+        return () => {
+            socket.off("existing-poll-launched", handleLaunchExistingPoll);
+            socket.off("connect", attachListener);
+        };
+    }, [socket, activePoll?.id]);
     
     const handleAddNewPoll = async () => {
         if (!pollQuestion.trim() || options.some(opt => !opt.trim())) {
@@ -204,11 +229,16 @@ const PollCard = () => {
 }
 
 function ActivePollCard(){
-    const { activePoll, updateOptionVotes } = usePollStore();
+    const { activePoll, updateOptionVotes, setActivePoll } = usePollStore();
     const socket = useSocket();
     if(!activePoll) return;
     // console.log(activePoll.options);
     if(!activePoll.options) return;
+    const roomId = useRoomStore((state) => state.room?.roomId)
+    const { user } = useUser();
+    // console.log("activePoll: ",activePoll)
+    // console.log("activePoll options: ",activePoll.options);
+    useJoinRoomSocket({ socket, roomId, userId: user?.id })
 
     const totalVotes = activePoll.options.reduce(
         (acc, opt) => acc + (opt.voteCount || 0),
@@ -216,15 +246,43 @@ function ActivePollCard(){
     );
 
     useEffect(() => {
-        const handlePollVoteAdded = ({pollId, optionVotes}: {pollId: string, optionVotes: typeof activePoll.options}) => {
+        if (!socket) return;
+        const handlePollVoteAdded = ({pollId, optionVotes}: {pollId: string, optionVotes: PollOption[]}) => {
+            alert("hi")
+            // console.log("🛠 OptionVotes received:", optionVotes);
+            // console.log("🛠 First option:", optionVotes[0]);
             updateOptionVotes(pollId, optionVotes);
+            alert("end")
         };
-        socket.on("poll-vote-added", handlePollVoteAdded)
+        
+        const attachListener = () => {
+            socket.on("poll-vote-added", handlePollVoteAdded)
+        };
 
+        if (socket.connected) {
+            attachListener();
+        }
+
+        socket.on("connect", attachListener);
         return () => {
+            socket.off("connect", attachListener);
             socket.off("poll-vote-added", handlePollVoteAdded)
         }
     }, [socket, updateOptionVotes, activePoll?.id])
+
+    const handleEndPoll = () => {
+        try {
+            socket.emit("end-poll", {
+                pollId: activePoll.id,
+                roomId,
+                userId: user?.id
+            });
+
+            setActivePoll(null)
+        } catch(err) {
+            console.error('Failed to end a poll:', err);
+        }
+    }
 
     return (
         <>
@@ -259,6 +317,7 @@ function ActivePollCard(){
                 <Button
                     variant={"default"}
                     className='px-4 py-2 rounded-sm disabled:opacity-50'
+                    onClick={handleEndPoll}
                 >
                     End Poll
                 </Button>

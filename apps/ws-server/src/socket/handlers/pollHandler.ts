@@ -58,6 +58,7 @@ export default function pollHandler(io: Server, socket: Socket){
     })
 
     socket.on("launch-existing-poll", async (data) => {
+        console.log(data);
         const {pollId, roomId, userId} = data;
 
         try {
@@ -66,24 +67,45 @@ export default function pollHandler(io: Server, socket: Socket){
                     id: roomId
                 }
             })
-
-            if(!room){
-                throw new Error("Room not found")
-            }
+            if(!room){throw new Error("Room not found")}
 
             if (room.endDate < new Date() || room.status === "ENDED") {
-                throw new Error("Room has expired.")
+                    throw new Error("Room has expired.")
             }
 
             if(room.creatorId !== userId){
                 throw new Error("Only the room owner can create or launch polls.")
             }
 
+            const existingPoll = await prisma.poll.findUnique({
+                where: {
+                    id: pollId,
+                    roomId
+                }
+            })
+
+            if(!existingPoll){
+                throw new Error("Poll not found")
+            }
+
+            await prisma.$transaction([
+                prisma.pollVote.deleteMany({
+                    where: { pollId }
+                }),
+                
+                prisma.pollOption.updateMany({
+                    where: { pollId },
+                    data: { voteCount: 0 }
+                })
+            ])
+
             const poll = await prisma.poll.update({
                 where: {
-                    id: pollId
+                    id: pollId,
+                    roomId
                 },
                 data: {
+                    isLaunched: true,
                     status: "LAUNCHED"
                 },
                 include: {
@@ -91,10 +113,12 @@ export default function pollHandler(io: Server, socket: Socket){
                 }
             })
 
+            // console.log(poll)
+
             io.to(roomId).emit("existing-poll-launched", {
                 poll
             })
-        } catch(err) {
+        }catch(err) {
             console.error("Error launching a existing poll:", err);
             socket.emit("launching-existing-poll-error", { message: "Could not launch an existing poll. Try again." });
         }
@@ -153,22 +177,18 @@ export default function pollHandler(io: Server, socket: Socket){
         }
     })
 
-    socket.on("end-poll", async (data) => {
+    socket.on("remove-poll", async (data) => {
         const {pollId, roomId, userId} = data;
 
         try {
             const room = await prisma.room.findUnique({
-                where: {
-                    id: roomId
-                }
+                where: { id: roomId }
             })
 
-            if(!room){
-                throw new Error("Room not found")
-            }
+            if(!room){throw new Error("Room not found")}
 
             if (room.endDate < new Date() || room.status === "ENDED") {
-                throw new Error("Room has expired.")
+                    throw new Error("Room has expired.")
             }
 
             if(room.creatorId !== userId){
@@ -185,19 +205,17 @@ export default function pollHandler(io: Server, socket: Socket){
             if(!existingPoll){
                 throw new Error("Poll not found")
             }
-
-            const poll = await prisma.poll.update({
+            const poll = await prisma.poll.delete({
                 where: {
                     id: pollId,
                     roomId
                 },
-                data: {
-                    isLaunched: false,
-                    status: PollStatus.ENDED
+                select: {
+                    id: true
                 }
             })
 
-            io.to(roomId).emit("poll-deleted", {
+            io.to(roomId).emit("poll-removed", {
                 poll
             })
         } catch(err) {
