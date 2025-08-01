@@ -56,30 +56,30 @@ const Polls = ({setInteraction}: {setInteraction: (val: Interaction) => void}) =
     }, [socket])
 
     useEffect(() => {
-            if (!socket) return;
-    
-            const handleLaunchExistingPoll = (data: { poll: Poll}) => {
-                console.log("🚀 Received existing-poll-launched:", data);
-                const { poll } = data;
-                setActivePoll(poll);
-                setInteraction("poll")
-            };
-    
-            const attachListener = () => {
-                socket.on("existing-poll-launched", handleLaunchExistingPoll);
-            };
-    
-            if (socket.connected) {
-                attachListener();
-            }
-    
-            socket.on("connect", attachListener);
-    
-            return () => {
-                socket.off("existing-poll-launched", handleLaunchExistingPoll);
-                socket.off("connect", attachListener);
-            };
-        }, [socket]);
+        if (!socket) return;
+
+        const handleLaunchExistingPoll = (data: { poll: Poll}) => {
+            console.log("🚀 Received existing-poll-launched:", data);
+            const { poll } = data;
+            setActivePoll(poll);
+            setInteraction("poll")
+        };
+
+        const attachListener = () => {
+            socket.on("existing-poll-launched", handleLaunchExistingPoll);
+        };
+
+        if (socket.connected) {
+            attachListener();
+        }
+
+        socket.on("connect", attachListener);
+
+        return () => {
+            socket.off("existing-poll-launched", handleLaunchExistingPoll);
+            socket.off("connect", attachListener);
+        };
+    }, [socket]);
 
     const handleRelaunchPoll = (pollId: string) => {
         try {
@@ -102,10 +102,28 @@ const Polls = ({setInteraction}: {setInteraction: (val: Interaction) => void}) =
                 });
                 setInteraction('poll');
             }
+            setOpenPollId(null);
         } catch(err) {
             console.error('Failed to relaunch a poll:', err);
         }
     }
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Element;
+            if (!target.closest('[data-poll-menu]')) {
+                setOpenPollId(null);
+            }
+        };
+
+        if (openPollId) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [openPollId]);
 
     const handleDeletePoll = (pollId: string) => {
         try{
@@ -142,7 +160,8 @@ const Polls = ({setInteraction}: {setInteraction: (val: Interaction) => void}) =
                                     animate={{ height: 'auto', opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
                                     transition={{ duration: 0.2, ease: 'easeInOut' }}
-                                    className='overflow-hidden flex flex-col gap-2'
+                                    className='flex flex-col gap-2'
+                                    style={{ overflow: 'visible' }}
                                 >
                                     {polls.map((poll, idx) => (
                                         <div 
@@ -151,6 +170,7 @@ const Polls = ({setInteraction}: {setInteraction: (val: Interaction) => void}) =
                                             ref={(el) => {
                                                 pollRefs.current[poll.id] = el;
                                             }}
+                                            data-poll-menu
                                         >
                                             <motion.div 
                                                 initial={{ opacity: 0 }}
@@ -192,6 +212,10 @@ const Polls = ({setInteraction}: {setInteraction: (val: Interaction) => void}) =
                                                         ${menuDirection === 'up' ? 'bottom-2 mb-2' : 'top-2 mt-2'}
                                                         w-48 bg-popover shadow-md rounded border border-border z-60
                                                     `}
+                                                    style={{
+                                                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                                                    }}
+                                                    data-poll-menu
                                                 >
                                                     <div className="flex flex-col text-sm">
                                                         <button className="hover:bg-muted px-4 py-2 text-left cursor-pointer" onClick={() => handleRelaunchPoll(poll.id)}>
