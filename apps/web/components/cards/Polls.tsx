@@ -208,9 +208,9 @@ const Polls = ({setInteraction}: {setInteraction: (val: Interaction) => void}) =
                                                     exit={{ opacity: 0, y: -5 }}
                                                     transition={{ duration: 0.2 }}
                                                     className={`
-                                                        absolute right-12 
+                                                        absolute right-12 z-[9999]
                                                         ${menuDirection === 'up' ? 'bottom-2 mb-2' : 'top-2 mt-2'}
-                                                        w-48 bg-popover shadow-md rounded border border-border z-60
+                                                        w-48 bg-popover shadow-md rounded border border-border
                                                     `}
                                                     style={{
                                                         boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
@@ -218,10 +218,21 @@ const Polls = ({setInteraction}: {setInteraction: (val: Interaction) => void}) =
                                                     data-poll-menu
                                                 >
                                                     <div className="flex flex-col text-sm">
-                                                        <button className="hover:bg-muted px-4 py-2 text-left cursor-pointer" onClick={() => handleRelaunchPoll(poll.id)}>
+                                                        <button className="hover:bg-muted px-4 py-2 text-left cursor-pointer" 
+                                                            onClick={(e) =>{
+                                                                e.stopPropagation();
+                                                                handleRelaunchPoll(poll.id);
+                                                            }}
+                                                        >
                                                             Launch Poll
                                                         </button>
-                                                        <button className="hover:bg-muted px-4 py-2 text-left cursor-pointer" onClick={() => handleDeletePoll(poll.id)}>
+                                                        <button 
+                                                            className="hover:bg-muted px-4 py-2 text-left cursor-pointer" 
+                                                            onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeletePoll(poll.id);
+                                                                }}
+                                                        >
                                                             Delete Poll
                                                         </button>
                                                         {/* <button className="hover:bg-muted px-4 py-2 text-left" onClick={handleRelaunchPoll}>
