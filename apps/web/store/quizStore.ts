@@ -2,12 +2,26 @@ import { Quiz, QuizParticipant, QuizStore } from "@/types/types";
 import { QuizStatus } from "@repo/db";
 import { create } from "zustand";
 
-const useQuizStore = create<QuizStore>((set) => ({
+const useQuizStore = create<QuizStore>((set, get) => ({
     quizzes: [],
     activeQuiz: null,
+    hasJoined: false,
+    participantName: "",
     quizParticipants: [],
+    setHasJoined: (hasJoined: boolean) => set({ hasJoined }),
+    checkAndRestoreUser: (userId: string, quizId: string) => {
+        const activeQuiz = get().activeQuiz;
+
+        if (activeQuiz?.id !== quizId) return;
+        const participant = activeQuiz.quizParticipant.find(p => p.userId === userId)
+
+        if (participant) {
+            set({ hasJoined: true, participantName: participant.name });
+        }
+    },
+    setParticipantName: (name: string) => set({ participantName: name }),
     setQuizzes: (quizzes: Quiz[]) => set({quizzes}),
-    setActiveQuiz: (poll) => set({ activeQuiz: poll }),
+    setActiveQuiz: (quiz) => set({ activeQuiz: quiz }),
     addQuizParticipant: (quizUser: QuizParticipant) =>
         set((state) => ({
             quizParticipants: [...state.quizParticipants, quizUser]

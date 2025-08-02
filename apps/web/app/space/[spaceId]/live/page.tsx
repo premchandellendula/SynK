@@ -8,6 +8,7 @@ import { useJoinRoomSocket } from "@/hooks/useJoinRoomSocket";
 import { useSocket } from "@/hooks/useSocket";
 import { useUser } from "@/hooks/useUser";
 import usePollStore from "@/store/pollStore";
+import useQuizStore from "@/store/quizStore";
 import useRoomStore from "@/store/roomStore";
 import { Interaction, Room } from "@/types/types";
 import axios from "axios";
@@ -23,6 +24,7 @@ export default function Live(){
     const { user } = useUser();
     const socket = useSocket();
     const { setActivePoll } = usePollStore();
+    const { setActiveQuiz } = useQuizStore();
 
     useJoinRoomSocket({ socket, roomId, userId: user?.id })
     useEffect(() => {
@@ -64,6 +66,31 @@ export default function Live(){
 
         return () => clearTimeout(timeout);
     }, [roomId, setActivePoll]);
+
+    useEffect(() => {
+        if (!roomId) return;
+
+        const fetchActiveQuiz = async () => {
+            try {
+                const response = await axios.get(`/api/room/${roomId}/quizzes/active`, {
+                    withCredentials: true
+                });
+                const quiz = response.data.quiz;
+                if (quiz) {
+                    setActiveQuiz(quiz);
+                    setInteraction("quiz");
+                }
+            } catch (err) {
+                console.error("Failed to fetch active quiz:", err);
+            }
+        };
+
+        const timeout = setTimeout(() => {
+            fetchActiveQuiz();
+        }, 300);
+
+        return () => clearTimeout(timeout);
+    }, [roomId, setActiveQuiz]);
 
     return (
         <div className="flex flex-col h-screen">

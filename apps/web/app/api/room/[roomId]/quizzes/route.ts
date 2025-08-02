@@ -134,25 +134,25 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{roomI
             where: {
                 roomId
             },
-            select: {
-                id: true,
-                quizName: true,
-                roomId: true,
-                creatorId: true,
-                createdAt: true,
-                updatedAt: true,
-                quizQuestions: {
-                    select: {
-                        id: true,
-                        question: true,
-                        voteCount: true,
+            include: {
+                currentQuestion: {
+                    include: {
                         quizOptions: {
-                            select: {
-                                id: true,
-                                text: true,
-                                voteCount: true,
+                            include: {
+                                quizVotes: true
                             }
-                        }
+                        },
+                        quizVotes: true
+                    }
+                },
+                quizQuestions: {
+                    include: {
+                        quizOptions: {
+                            include: {
+                                quizVotes: true
+                            }
+                        },
+                        quizVotes: true
                     }
                 }
             }

@@ -145,8 +145,13 @@ export type PollStore = {
 export type QuizStore = {
     quizzes: Quiz[],
     activeQuiz: Quiz | null,
+    hasJoined: boolean,
+    participantName: string,
     quizParticipants: QuizParticipant[],
     setQuizzes: (quizzes: Quiz[]) => void,
+    checkAndRestoreUser: (userId: string, quizId: string) => void,
+    setHasJoined: (hasJoined: boolean) => void,
+    setParticipantName: (name: string) => void,
     setActiveQuiz: (quiz: Quiz | null) => void,
     addQuizParticipant: (quizUser: QuizParticipant) => void,
     addQuiz: (quiz: Quiz) => void,

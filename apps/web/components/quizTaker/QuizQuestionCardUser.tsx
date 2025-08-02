@@ -12,8 +12,7 @@ import { toast } from 'sonner'
 const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interaction) => void}) => {
     const [selected, setSelected] = useState<number | null>(null)
     const [name, setName] = useState<string>("")
-    const [hasJoined, setHadJoined] = useState<boolean>(false)
-    const { activeQuiz, setCurrentQuestion } = useQuizStore();
+    const { activeQuiz, setCurrentQuestion, checkAndRestoreUser, hasJoined, setHasJoined, participantName } = useQuizStore();
     if(!activeQuiz) return;
     const currentQuizQuestion = activeQuiz.currentQuestion;
     const roomId = useRoomStore((state) => state.room?.roomId)
@@ -35,7 +34,7 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
                 name
             })
 
-            setHadJoined(true)
+            setHasJoined(true)
         } catch(err) {
             console.log("Failed to join a quiz: ", err)
         }
@@ -54,6 +53,12 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
             socket.off("question-started", handleQuestionStarted);
         }
     }, [socket, roomId]);
+
+    useEffect(() => {
+        if (user?.id && activeQuiz?.id) {
+            checkAndRestoreUser(user.id, activeQuiz.id);
+        }
+    }, [user?.id, activeQuiz?.id]);
 
     if(!activeQuiz){
         return (
@@ -79,7 +84,7 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
     if(hasJoined && !currentQuizQuestion){
         return (
             <div className='flex flex-col items-center justify-center mt-10 text-center px-4'>
-                <h3 className='text-foreground text-[1.4rem] font-semibold mb-2'>{name}, you&apos;ve joined the room!</h3>
+                <h3 className='text-foreground text-[1.4rem] font-semibold mb-2'>{participantName}, you&apos;ve joined the room!</h3>
                 <p className='text-muted-foreground mb-3 text-base'>
                     Hang tight! The quiz will begin once everyone&apos;s ready.
                 </p>
