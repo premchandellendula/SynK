@@ -68,11 +68,12 @@ export type Quiz = {
     creatorId: string,
     status: QuizStatus,
     currentQuestionId:  string,
+    currentQuestion: Quiz,
     quizQuestions: QuizQuestion[],
     quizParticipant: QuizParticipant[]
 }
 
-type QuizQuestion = {
+export type QuizQuestion = {
     id: string,
     question: string,
     quizId: string,
@@ -84,7 +85,7 @@ type QuizQuestion = {
     quizOptions: QuizOption[]
 }
 
-type QuizOption = {
+export type QuizOption = {
     id: string,
     text: string,
     quizQuestionId: string,
@@ -143,7 +144,11 @@ export type PollStore = {
 
 export type QuizStore = {
     quizzes: Quiz[],
+    activeQuiz: Quiz | null,
+    quizParticipants: QuizParticipant[],
     setQuizzes: (quizzes: Quiz[]) => void,
+    setActiveQuiz: (quiz: Quiz | null) => void,
+    addQuizParticipant: (quizUser: QuizParticipant) => void,
     addQuiz: (quiz: Quiz) => void,
     launchQuiz: (quizId: string) => void,
     joinQuiz: (user: QuizParticipant, quizId: string) => void,
@@ -160,3 +165,14 @@ export type RoomStore = {
     spaceId: string,
     code: string
 }
+
+
+// Normal Types
+
+export interface IQuizQuestion {
+    question: string,
+    options: string[],
+    correctOptionIndex: number 
+}
+
+export type IQuizBuilderStages = 'build' | 'waiting' | 'question' | 'leaderboard'

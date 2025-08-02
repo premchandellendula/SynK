@@ -11,18 +11,10 @@ import { useJoinRoomSocket } from '@/hooks/useJoinRoomSocket';
 const UserPoll = ({setInteraction}: {setInteraction: (val: Interaction) => void}) => {
     const [selected, setSelected] = useState<string | null>(null)
     const { activePoll, setActivePoll } = usePollStore();
-    // const [hasVoted, setHasVoted] = useState(false);
-    // console.log(activePoll);
     const { user } = useUser();
     const roomId = useRoomStore((state) => state.room?.roomId)
     const socket = useSocket();
     useJoinRoomSocket({ socket, roomId, userId: user?.id })
-
-    // const storeVoted = activePoll?.pollVotes?.some(vote => vote.userId === user?.id) || false;
-    // console.log("storeVoted: ", storeVoted)
-    // const alreadyVoted = hasVoted || storeVoted;
-    // console.log("alreadyVoted: ", alreadyVoted);
-    // console.log("hasVoted: ", hasVoted);
     
     useEffect(() => {
         setSelected(null);
@@ -41,7 +33,7 @@ const UserPoll = ({setInteraction}: {setInteraction: (val: Interaction) => void}
         }
     }, [socket, setActivePoll])
 
-    const handlePollVote = async () => {
+    const handlePollVote = () => {
         try {
             if (!selected) {
                 toast.warning("Please select an option")

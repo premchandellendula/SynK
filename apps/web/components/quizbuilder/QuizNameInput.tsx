@@ -14,7 +14,7 @@ const QuizNameInput = ({setQuizName, quizName, next}: {setQuizName: (val: string
             </div>
             <div className='h-96 flex flex-col gap-2 justify-center items-center'>
                 <p>No Questions yet!!</p>
-                <Button disabled={quizName.trim().length === 0} onClick={next}>First Question</Button>
+                <Button disabled={quizName.trim().length === 0} onClick={next}>Add First Question</Button>
             </div>
         </div>
     )

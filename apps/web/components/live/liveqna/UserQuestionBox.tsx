@@ -3,14 +3,16 @@ import QuestionInput from './QuestionInput'
 import Questions from './Questions'
 import { useSocket } from '@/hooks/useSocket';
 import usePollStore from '@/store/pollStore';
-import { Interaction, Poll } from '@/types/types';
+import { Interaction, Poll, Quiz } from '@/types/types';
 import { useJoinRoomSocket } from '@/hooks/useJoinRoomSocket';
 import useRoomStore from '@/store/roomStore';
 import { useUser } from '@/hooks/useUser';
+import useQuizStore from '@/store/quizStore';
 
 const UserQuestionBox = ({setInteraction}: {setInteraction: (val: Interaction) => void}) => {
     const socket = useSocket();
     const { setActivePoll } = usePollStore();
+    const { setActiveQuiz } = useQuizStore();
     const roomId = useRoomStore((state) => state.room?.roomId)
     const { user } = useUser();
 
@@ -31,7 +33,7 @@ const UserQuestionBox = ({setInteraction}: {setInteraction: (val: Interaction) =
         };
 
         if (socket.connected) {
-            console.log("hi")
+            // console.log("hi")
             attachListener();
         }
 
@@ -53,8 +55,16 @@ const UserQuestionBox = ({setInteraction}: {setInteraction: (val: Interaction) =
             setInteraction("poll")
         };
 
+        const handleQuizStarted = (data: { quiz: Quiz}) => {
+            console.log("🚀 Received quiz-started:", data);
+            const { quiz } = data;
+            setActiveQuiz(quiz)
+            setInteraction("quiz")
+        };
+
         const attachListener = () => {
             socket.on("existing-poll-launched", handleLaunchExistingPoll);
+            socket.on("quiz-started", handleQuizStarted);
         };
 
         if (socket.connected) {
@@ -65,6 +75,7 @@ const UserQuestionBox = ({setInteraction}: {setInteraction: (val: Interaction) =
 
         return () => {
             socket.off("existing-poll-launched", handleLaunchExistingPoll);
+            socket.off("quiz-started", handleQuizStarted);
             socket.off("connect", attachListener);
         };
     }, [socket]);

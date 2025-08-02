@@ -80,9 +80,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{room
                 }
             },
             include: {
+                currentQuestion: {
+                    include: {
+                        quizOptions: {
+                            include: {
+                                quizVotes: true
+                            }
+                        },
+                        quizVotes: true
+                    }
+                },
                 quizQuestions: {
                     include: {
-                        quizOptions: true
+                        quizOptions: true,
+                        quizVotes: true
                     }
                 }
             }

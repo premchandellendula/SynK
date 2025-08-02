@@ -3,33 +3,16 @@ import { Server, Socket } from "socket.io";
 
 export default function quizHandler(io: Server, socket: Socket){
     socket.on("start-quiz", (data) => {
-        if (typeof data === 'string') {
-            try {
-                data = JSON.parse(data);
-            } catch (e) {
-                console.error("Invalid JSON string received:", data);
-                return;
-            }
-        }
-
-        const { quizId, roomId, userId } = data;
+        const { quizId, roomId, quiz, userId } = data;
 
         io.to(roomId).emit("quiz-started", {
-            message: "start quiz"
+            message: "start quiz",
+            quiz
         })
-        socket.emit("joined-quiz", { quizId })
+        // socket.emit("joined-quiz", { quizId })
     })
 
     socket.on("join-quiz", async (data) => {
-        if (typeof data === 'string') {
-            try {
-                data = JSON.parse(data);
-            } catch (e) {
-                console.error("Invalid JSON string received:", data);
-                return;
-            }
-        }
-
         const { roomId, userId, quizId, name } = data;
 
         try {
@@ -68,10 +51,8 @@ export default function quizHandler(io: Server, socket: Socket){
                 })
             }
 
-            socket.join(quizId)
-            io.to(quizId).emit("user-joined", {
-                id: quizUser.id,
-                name: quizUser.name
+            io.to(roomId).emit("user-joined", {
+                quizUser
             })
         }catch(err) {
             console.log("Error joining the quiz: ", err);
@@ -79,15 +60,6 @@ export default function quizHandler(io: Server, socket: Socket){
         }
     })
     socket.on("launch-quiz", async (data) => {
-        if (typeof data === 'string') {
-            try {
-                data = JSON.parse(data);
-            } catch (e) {
-                console.error("Invalid JSON string received:", data);
-                return;
-            }
-        }
-
         const { quizId, roomId, quizQuestionId, userId } = data;
 
         try {

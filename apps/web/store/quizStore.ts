@@ -4,7 +4,14 @@ import { create } from "zustand";
 
 const useQuizStore = create<QuizStore>((set) => ({
     quizzes: [],
+    activeQuiz: null,
+    quizParticipants: [],
     setQuizzes: (quizzes: Quiz[]) => set({quizzes}),
+    setActiveQuiz: (poll) => set({ activeQuiz: poll }),
+    addQuizParticipant: (quizUser: QuizParticipant) =>
+        set((state) => ({
+            quizParticipants: [...state.quizParticipants, quizUser]
+        })),
     addQuiz: (quiz: Quiz) =>
         set((state) => ({
             quizzes: [...state.quizzes, quiz]
