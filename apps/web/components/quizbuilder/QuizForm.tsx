@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import QuizQuestionCard from './QuizQuestionCard';
 import { Button } from '../ui/button';
 import { Plus } from 'lucide-react';
-import { IQuizBuilderStages, IQuizQuestion, QuizParticipant, User } from '@/types/types';
+import { IQuizBuilderStages, IQuizQuestion } from '@/types/types';
 import axios from 'axios';
 import useRoomStore from '@/store/roomStore';
 import { toast } from 'sonner';
 import { useSocket } from '@/hooks/useSocket';
 import { useJoinRoomSocket } from '@/hooks/useJoinRoomSocket';
 import { useUser } from '@/hooks/useUser';
+import useQuizStore from '@/store/quizStore';
 
 const QuizForm = ({quizName, setStep} : {quizName: string, setStep: (step: IQuizBuilderStages) => void}) => {
     const [questions, setQuestions] = useState<IQuizQuestion[]>([{
@@ -19,6 +20,7 @@ const QuizForm = ({quizName, setStep} : {quizName: string, setStep: (step: IQuiz
     const roomId = useRoomStore((state) => state.room?.roomId);
     const socket = useSocket();
     const { user } = useUser();
+    const { addQuiz, setActiveQuiz } = useQuizStore();
 
     useJoinRoomSocket({socket, roomId, userId: user?.id});
 
@@ -78,6 +80,8 @@ const QuizForm = ({quizName, setStep} : {quizName: string, setStep: (step: IQuiz
                 quiz,
                 userId: user?.id
             })
+            addQuiz(quiz)
+            setActiveQuiz(quiz)
             setStep("waiting")
         }catch(err) {
             console.error('Failed to add a new quiz:', err);

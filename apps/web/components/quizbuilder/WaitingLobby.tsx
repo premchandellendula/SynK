@@ -1,7 +1,7 @@
 import useQuizStore from '@/store/quizStore'
 import React, { useEffect } from 'react'
 import { Button } from '../ui/button';
-import { IQuizBuilderStages, QuizParticipant } from '@/types/types';
+import { IQuizBuilderStages, QuizParticipant, QuizQuestion } from '@/types/types';
 import { useSocket } from '@/hooks/useSocket';
 import useRoomStore from '@/store/roomStore';
 import { useUser } from '@/hooks/useUser';
@@ -9,7 +9,7 @@ import { useJoinRoomSocket } from '@/hooks/useJoinRoomSocket';
 import { timeAgo } from '@/lib/utils';
 
 const WaitingLobby = ({setStep}: {setStep: (step: IQuizBuilderStages) => void}) => {
-    const { quizParticipants, addQuizParticipant } = useQuizStore();
+    const { quizParticipants, addQuizParticipant, activeQuiz, setCurrentQuestion, setActiveQuestion } = useQuizStore();
     const socket = useSocket();
     const roomId = useRoomStore((state) => state.room?.roomId)
     const { user } = useUser();
@@ -41,6 +41,27 @@ const WaitingLobby = ({setStep}: {setStep: (step: IQuizBuilderStages) => void}) 
         };
     }, [socket, roomId, quizParticipants]);
 
+    const handleFirstQuestion = () => {
+        try {
+            if(!activeQuiz) return;
+            const firstQuestion = activeQuiz.quizQuestions[0];
+            if (!firstQuestion) return;
+
+            setActiveQuestion(firstQuestion);
+            setStep("question");
+            
+            socket.emit("set-current-question", {
+                quizId: activeQuiz.id,
+                userId: user?.id,
+                roomId,
+                quizQuestionId: firstQuestion?.id
+            })
+
+        }catch(err) {
+            console.error('Failed to set the current question:', err);
+        }
+    }
+
     return (
         <div>
             <div className='absolute top-12 bottom-12 left-0 right-0 overflow-y-auto p-2'>
@@ -60,7 +81,7 @@ const WaitingLobby = ({setStep}: {setStep: (step: IQuizBuilderStages) => void}) 
                 </ul>
             </div>
             <div className="absolute bottom-0 left-0 right-0 h-12 bg-input/20 flex items-center px-2">
-                <Button>
+                <Button onClick={handleFirstQuestion}>
                     First Question
                 </Button>
             </div>

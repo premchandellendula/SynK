@@ -75,7 +75,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{room
                                 isCorrect: opt.isCorrect,
                                 voteCount: 0,
                             }))
-                        }
+                        },
+                        timerSeconds: 30
                     }))
                 }
             },

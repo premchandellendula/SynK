@@ -19,6 +19,10 @@ const UserQuestionBox = ({setInteraction}: {setInteraction: (val: Interaction) =
     useJoinRoomSocket({ socket, roomId, userId: user?.id })
 
     useEffect(() => {
+        
+    }, [])
+
+    useEffect(() => {
         if (!socket) return;
 
         const handleLaunchNewPoll = (data: { poll: Poll }) => {

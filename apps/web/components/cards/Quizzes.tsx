@@ -9,9 +9,10 @@ import { useJoinRoomSocket } from '@/hooks/useJoinRoomSocket'
 import axios from 'axios'
 import { AnimatePresence, motion } from 'motion/react'
 import clsx from 'clsx'
+import { Quiz } from '@/types/types'
 
 const Quizzes = () => {
-    const { quizzes, setQuizzes, setActiveQuiz } = useQuizStore();
+    const { quizzes, setQuizzes, setActiveQuiz, removeQuiz } = useQuizStore();
     const [isChevronDown, setIsChevronDown] = useState(false);
     const roomId = useRoomStore((state) => state.room?.roomId);
     const [openQuizId, setOpenQuizId] = useState<string | null>(null);
@@ -20,6 +21,27 @@ const Quizzes = () => {
     const { user } = useUser();
     const socket = useSocket();
     useJoinRoomSocket({ socket, roomId, userId: user?.id })
+
+    useEffect(() => {
+        if (!socket) return;
+        const handleQuizDeleted = (data: {quiz: Quiz}) => {
+            const { quiz } = data;
+            removeQuiz(quiz.id)
+        }
+        const attachListener = () => {
+            socket.on("quiz-removed", handleQuizDeleted)
+        }
+
+        if (socket.connected) {
+            attachListener();
+        }
+        socket.on("connect", attachListener)
+
+        return () => {
+            socket.off("quiz-removed", handleQuizDeleted);
+            socket.off("connect", attachListener);
+        };
+    }, [socket])
 
     useEffect(() => {
         const fetchQuizzes = async () => {
@@ -52,7 +74,17 @@ const Quizzes = () => {
     }, [openQuizId]);
 
     const handleRelaunchQuiz = (quizId: string) => {}
-    const handleDeleteQuiz = (quizId: string) => {}
+    const handleDeleteQuiz = (quizId: string) => {
+        try{
+            socket.emit("remove-quiz", {
+                quizId,
+                roomId,
+                userId: user?.id
+            })
+        }catch(err){
+            console.error("Failed to delete the quiz: ", err)
+        }
+    }
 
     return (
         <>

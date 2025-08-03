@@ -1,4 +1,4 @@
-import { Quiz, QuizParticipant, QuizStore } from "@/types/types";
+import { Quiz, QuizOption, QuizParticipant, QuizQuestion, QuizStore } from "@/types/types";
 import { QuizStatus } from "@repo/db";
 import { create } from "zustand";
 
@@ -8,12 +8,16 @@ const useQuizStore = create<QuizStore>((set, get) => ({
     hasJoined: false,
     participantName: "",
     quizParticipants: [],
+    currentQuestion: null,
+    setActiveQuestion: (question) => set({ currentQuestion: question }),
     setHasJoined: (hasJoined: boolean) => set({ hasJoined }),
     checkAndRestoreUser: (userId: string, quizId: string) => {
         const activeQuiz = get().activeQuiz;
 
-        if (activeQuiz?.id !== quizId) return;
-        const participant = activeQuiz.quizParticipant.find(p => p.userId === userId)
+        if (!activeQuiz || activeQuiz.id !== quizId) return;
+
+        const participantList = activeQuiz.quizParticipant ?? [];
+        const participant = participantList.find(p => p.userId === userId);
 
         if (participant) {
             set({ hasJoined: true, participantName: participant.name });
@@ -50,71 +54,23 @@ const useQuizStore = create<QuizStore>((set, get) => ({
                     } : q
             )
         })),
-    setCurrentQuestion: (quizId: string, quizQuestionId: string) =>
-        set((state) => ({
-            quizzes: state.quizzes.map((q) => (
-                q.id === quizId ? {...q, currentQuestionId: quizQuestionId} : q
-            ))
-        })),
-    submitAnswer: (quizId: string, userId: string, quizQuestionId: string, quizOptionId: string) => 
-        set((state) => ({
-            quizzes: state.quizzes.map((q) => {
-                if(q.id !== quizId) return q;
+    setCurrentQuestion: (question: QuizQuestion) =>
+        set((state) => {
+            if (!state.activeQuiz) return state;
 
-                const updatedQuestions = q.quizQuestions.map((qn) => {
-                    if(qn.id !== quizQuestionId) return qn;
+            const updatedQuizQuestions = state.activeQuiz.quizQuestions.map((q) =>
+                q.id === question.id ? question : q
+            );
 
-                    const updatedOptions = qn.quizOptions.map((opt) => {
-                        const filteredVotes = opt.quizVotes.filter(vote => vote.userId !== userId)
-
-                        if(opt.id === quizOptionId){
-                            return {
-                                ...opt,
-                                quizVotes: [
-                                    ...filteredVotes,
-                                    {
-                                        userId,
-                                        quizQuestionId,
-                                        quizOptionId
-                                    }
-                                ],
-                                voteCount: filteredVotes.length + 1
-                            }
-                        }else{
-                            return {
-                                ...opt,
-                                quizVotes: filteredVotes,
-                                voteCount: filteredVotes.length
-                            }
-                        }
-                    })
-
-                    return {
-                        ...qn,
-                        quizOptions: updatedOptions,
-                        voteCount: updatedOptions.reduce((acc, opt) => acc + opt.voteCount, 0)
-                    }
-                })
-
-                return {
-                    ...q,
-                    quizQuestions: updatedQuestions
+            return {
+                currentQuestion: { ...question },
+                activeQuiz: {
+                    ...state.activeQuiz,
+                    currentQuestion: question,
+                    quizQuestions: updatedQuizQuestions,
                 }
-            })
-        })),
-    revealAnswer: (quizId: string, quizQuestionId: string) =>
-        set((state) => ({
-            quizzes: state.quizzes.map((q) => {
-                if(q.id !== quizId) return q;
-
-                return {
-                    ...q,
-                    quizQuestions: q.quizQuestions.map((qn) => (
-                        qn.id === quizQuestionId ? { ...qn, isAnswerRevealed: true } : qn
-                    ))
-                }
-            })
-        })),
+            };
+        }),
     stopQuiz: (quizId: string) =>
         set((state) => ({
             quizzes: state.quizzes.map((q) => (
@@ -123,14 +79,63 @@ const useQuizStore = create<QuizStore>((set, get) => ({
                     : q
             ))
         })),
-    endQuiz: (quizId: string) =>
+    removeQuiz: (quizId: string) =>
         set((state) => ({
-            quizzes: state.quizzes.map((q) => (
-                q.id === quizId
-                    ? {...q, status: QuizStatus.ENDED}
-                    : q
+            quizzes: state.quizzes.filter((q) => (
+                q.id !== quizId
             ))
         })),
+    updateQuizOptionVotes: (quizQuestionId: string, quizId: string, quizOptionVotes: QuizOption[]) =>
+        set((state): Partial<QuizStore> => {
+            const mergeVoteCounts = (options: QuizOption[]) =>
+                options.map((option) => {
+                    const updated = quizOptionVotes.find((o) => o.id === option.id);
+                    return updated ? { ...option, voteCount: updated.voteCount } : option;
+                });
+            const updatedQuizzes = state.quizzes.map((quiz) =>{
+                if (quiz.id !== quizId) return quiz;
+
+                const updatedQuestions = quiz.quizQuestions.map((question) => {
+                    if (question.id !== quizQuestionId) return question;
+
+                    return {
+                        ...question,
+                        quizOptions: mergeVoteCounts(question.quizOptions),
+                    };
+                })
+                return {
+                    ...quiz,
+                    quizQuestions: updatedQuestions,
+                };
+            })
+
+            const updatedActiveQuiz = state.activeQuiz?.id === quizId
+                    ? {
+                        ...state.activeQuiz,
+                        quizQuestions: state.activeQuiz.quizQuestions.map((question) => {
+                            if (question.id !== quizQuestionId) return question;
+
+                            return {
+                                ...question,
+                                quizOptions: mergeVoteCounts(question.quizOptions)
+                            }
+                        })
+                    }
+                    : state.activeQuiz;
+            
+            const updatedCurrentQuestion = state.currentQuestion?.id === quizQuestionId
+                    ? {
+                        ...state.currentQuestion,
+                        quizOptions: mergeVoteCounts(state.currentQuestion.quizOptions)
+                    }
+                    : state.currentQuestion
+
+            return {
+                quizzes: updatedQuizzes,
+                activeQuiz: updatedActiveQuiz,
+                currentQuestion: updatedCurrentQuestion
+            };
+        }),
 }))
 
 export default useQuizStore;

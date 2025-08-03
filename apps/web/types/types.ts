@@ -68,7 +68,7 @@ export type Quiz = {
     creatorId: string,
     status: QuizStatus,
     currentQuestionId:  string,
-    currentQuestion: Quiz,
+    currentQuestion: QuizQuestion,
     quizQuestions: QuizQuestion[],
     quizParticipant: QuizParticipant[]
 }
@@ -80,7 +80,7 @@ export type QuizQuestion = {
     voteCount: number,
     quizVotes: QuizVote[],
     isActive: boolean,
-    isAnsweredRevealed: boolean,
+    isAnswerRevealed: boolean,
     timerSeconds: number,
     quizOptions: QuizOption[]
 }
@@ -148,6 +148,8 @@ export type QuizStore = {
     hasJoined: boolean,
     participantName: string,
     quizParticipants: QuizParticipant[],
+    currentQuestion: QuizQuestion | null,
+    setActiveQuestion: (question: QuizQuestion) => void,
     setQuizzes: (quizzes: Quiz[]) => void,
     checkAndRestoreUser: (userId: string, quizId: string) => void,
     setHasJoined: (hasJoined: boolean) => void,
@@ -157,11 +159,10 @@ export type QuizStore = {
     addQuiz: (quiz: Quiz) => void,
     launchQuiz: (quizId: string) => void,
     joinQuiz: (user: QuizParticipant, quizId: string) => void,
-    setCurrentQuestion: (quizId: string, quizQuestionId: string) => void,
-    submitAnswer: (quizId: string, userId: string, quizQuestionId: string, quizOptionId: string) => void,
-    revealAnswer: (quizId: string, quizQuestionId: string) => void,
+    setCurrentQuestion: (question: QuizQuestion) => void,
     stopQuiz: (quizId: string) => void,
-    endQuiz: (quizId: string) => void
+    removeQuiz: (quizId: string) => void,
+    updateQuizOptionVotes: (quizQuestionId: string, quizId: string, quizOptionVotes: QuizOption[]) => void
 }
 
 export type RoomStore = {
