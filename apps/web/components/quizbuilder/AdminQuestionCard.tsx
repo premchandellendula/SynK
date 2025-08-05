@@ -6,6 +6,7 @@ import { useSocket } from '@/hooks/useSocket'
 import useRoomStore from '@/store/roomStore'
 import { useUser } from '@/hooks/useUser'
 import { useJoinRoomSocket } from '@/hooks/useJoinRoomSocket'
+import { toast } from 'sonner'
 
 const AdminQuestionCard = ({setStep}: {setStep: (step: IQuizBuilderStages) => void}) => {
     const currentQuestion = useQuizStore((s) => s.currentQuestion);
@@ -13,6 +14,7 @@ const AdminQuestionCard = ({setStep}: {setStep: (step: IQuizBuilderStages) => vo
     const updateQuizOptionVotes = useQuizStore((s) => s.updateQuizOptionVotes);
     const setCurrentQuestion = useQuizStore((s) => s.setCurrentQuestion);
     const setActiveQuiz = useQuizStore((s) => s.setActiveQuiz);
+    const setActiveQuestion = useQuizStore((s) => s.setActiveQuestion);
 
     // console.log("currentQuestion store:", currentQuestion)
     const socket = useSocket();
@@ -30,6 +32,7 @@ const AdminQuestionCard = ({setStep}: {setStep: (step: IQuizBuilderStages) => vo
         if (!socket || !roomId) return;
 
         const handleCurrentQuestionSet = (data: { question: QuizQuestion; quiz: Quiz }) => {
+            console.log("hello:", data.question);
             setActiveQuiz(data.quiz);
         };
 
@@ -66,7 +69,30 @@ const AdminQuestionCard = ({setStep}: {setStep: (step: IQuizBuilderStages) => vo
     }, [socket, roomId, setActiveQuiz, setCurrentQuestion, updateQuizOptionVotes]);
 
     const handleNextQuestion = () => {
-        console.log('Next Question clicked')
+        try {
+            if(!activeQuiz || !currentQuestion) return;
+            const nextOrder = currentQuestion.order + 1;
+
+            const nextQuestion = activeQuiz.quizQuestions?.find(q => q.order === nextOrder);
+
+            if (!nextQuestion) {
+                toast.error("No more questions left!");
+                return;
+            }
+            if (!nextQuestion) return;
+
+            setActiveQuestion(nextQuestion);
+            
+            socket.emit("set-current-question", {
+                quizId: activeQuiz.id,
+                userId: user?.id,
+                roomId,
+                quizQuestionId: nextQuestion.id
+            })
+
+        }catch(err) {
+            console.error('Failed to set the current question:', err);
+        }
     }
     const handleRevealAnswer = () => {
         try {

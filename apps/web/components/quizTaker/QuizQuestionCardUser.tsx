@@ -12,11 +12,16 @@ import axios from 'axios'
 import { cn } from '@/lib/utils'
 
 const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interaction) => void}) => {
+    const currentQuestion = useQuizStore((s) => s.currentQuestion);
+    console.log("currentQuestion: ", currentQuestion);
+    const activeQuiz = useQuizStore((s) => s.activeQuiz);
+    const setActiveQuiz = useQuizStore((s) => s.setActiveQuiz);
+    const setActiveQuestion = useQuizStore((s) => s.setActiveQuestion);
+    const setCurrentQuestion = useQuizStore((s) => s.setCurrentQuestion);
     const [selected, setSelected] = useState<string | null>(null)
-    const [name, setName] = useState<string>("")
-    const { activeQuiz, checkAndRestoreUser, hasJoined, setHasJoined, participantName, setActiveQuiz, setActiveQuestion, currentQuestion } = useQuizStore();
+    const [name, setName] = useState<string>("");
+    const { checkAndRestoreUser, hasJoined, setHasJoined, participantName } = useQuizStore();
     const [timeLeft, setTimeLeft] = useState<number | null>(null); 
-    const currentQuizQuestion = activeQuiz?.currentQuestion;
     const roomId = useRoomStore((state) => state.room?.roomId)
     const { user } = useUser();
     const socket = useSocket();
@@ -80,8 +85,8 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
     useEffect(() => {
         if (!socket) return;
         const handleQuizQuestionAnswerRevealed = ({question, correctOptionId}: {question: QuizQuestion, correctOptionId: QuizOption}) => {
-            console.log("connected answer-revealed", question)
-            console.log("connected answer-revealed correctOption", correctOptionId)
+            // console.log("connected answer-revealed", question)
+            // console.log("connected answer-revealed correctOption", correctOptionId)
             setRevealedAnswerId(correctOptionId.id)
             setShowAnswerFeedback(true)
         };
@@ -117,12 +122,12 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
 
         const handleUserJoined = (data: { question: QuizQuestion, quiz: Quiz}) => {
             console.log("🚀 Received current-question-set:", data);
-            const { question, quiz } = data;
-            setActiveQuiz(quiz);
-            setActiveQuestion(question);
+            setActiveQuiz(data.quiz);
+            setCurrentQuestion(data.question)
         };
 
         const attachListener = () => {
+            console.log("hehdjfke")
             socket.on("current-question-set", handleUserJoined);
         };
 
@@ -164,6 +169,12 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
         }
     }
 
+    useEffect(() => {
+        console.log("currentQuestion updated", currentQuestion);
+        setSelected(null);
+        setRevealedAnswerId(null);
+        setShowAnswerFeedback(false);
+    }, [currentQuestion]);
     if(!activeQuiz){
         return (
             <div className='flex flex-col justify-center items-center mt-20'>
@@ -185,7 +196,7 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
         )
     }
 
-    if(hasJoined && !currentQuizQuestion){
+    if(hasJoined && !currentQuestion){
         return (
             <div className='flex flex-col items-center justify-center mt-10 text-center px-4'>
                 <h3 className='text-foreground text-[1.4rem] font-semibold mb-2'>{participantName || name}, you&apos;ve joined the room!</h3>

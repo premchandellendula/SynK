@@ -78,6 +78,7 @@ export type QuizQuestion = {
     question: string,
     quizId: string,
     voteCount: number,
+    order: number,
     quizVotes: QuizVote[],
     isActive: boolean,
     isAnswerRevealed: boolean,

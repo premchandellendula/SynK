@@ -5,7 +5,7 @@ export default function quizHandler(io: Server, socket: Socket){
     socket.on("start-quiz", (data) => {
         const { quizId, roomId, quiz, userId } = data;
 
-        console.log(quiz)
+        // console.log(quiz)
         io.to(roomId).emit("quiz-started", {
             message: "start quiz",
             quiz
@@ -62,7 +62,6 @@ export default function quizHandler(io: Server, socket: Socket){
     })
     socket.on("set-current-question", async (data) => {
         const { quizId, roomId, quizQuestionId, userId } = data;
-        // console.log(data)
 
         try {
             const room = await prisma.room.findUnique({
@@ -73,8 +72,7 @@ export default function quizHandler(io: Server, socket: Socket){
 
             if(!room){
                 throw new Error("Room not found")
-            }
-            
+            }        
             if (room.endDate < new Date() || room.status === "ENDED") {
                 throw new Error("Room has already ended. Cannot create quiz.")
             }
@@ -187,7 +185,7 @@ export default function quizHandler(io: Server, socket: Socket){
 
     socket.on("quiz-answer", async (data) => {
         const { quizId, quizQuestionId, userId, quizOptionId, roomId } = data;
-        console.log(data)
+        // console.log(data)
         try {
             const room = await prisma.room.findUnique({
                 where: {
@@ -338,7 +336,7 @@ export default function quizHandler(io: Server, socket: Socket){
                 where: { id: quizId },
                 include: {
                     quizQuestions: {
-                        orderBy: { createdAt: 'asc' },
+                        orderBy: { order: 'asc' },
                     }
                 }
             });
@@ -385,7 +383,7 @@ export default function quizHandler(io: Server, socket: Socket){
             console.log("question- revealed: ", question)
             
             const correctOptionId = question?.quizOptions.find((option) => option.isCorrect === true)
-            console.log("option revealed: ", correctOptionId)
+            // console.log("option revealed: ", correctOptionId)
             io.to(roomId).emit("answer-revealed", {
                 question,
                 correctOptionId
