@@ -283,11 +283,13 @@ export default function quizHandler(io: Server, socket: Socket){
                         create: {
                             quizId: option.quizQuestion.quizId,
                             userId,
-                            score: 1,
+                            score: option.isCorrect ? 1 : 0,
                         },
-                        update: {
-                            score: {increment: 1},
-                        },
+                        update: option.isCorrect  
+                            ? {
+                                score: {increment: 1},
+                            }
+                            : {},
                     });
                 }
             })
@@ -408,15 +410,6 @@ export default function quizHandler(io: Server, socket: Socket){
     })
 
     socket.on("reveal-leaderboard", async (data) => {
-        if (typeof data === 'string') {
-            try {
-                data = JSON.parse(data);
-            } catch (e) {
-                console.error("Invalid JSON string received:", data);
-                return;
-            }
-        }
-
         const { quizId, roomId, userId } = data;
         try {
             const room = await prisma.room.findUnique({
@@ -475,6 +468,7 @@ export default function quizHandler(io: Server, socket: Socket){
                 });
                 return;
             }
+            console.log(leaderboard);
             const quizName = leaderboard[0]?.quiz.quizName ?? "Untitled Quiz"
             io.to(roomId).emit("leaderboard-revealed", {
                 quizId,

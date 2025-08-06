@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Button } from '../ui/button'
-import { Interaction, Quiz, QuizOption, QuizQuestion } from '@/types/types'
+import { Interaction, Quiz, QuizLeaderboard, QuizLeaderboardProps, QuizOption, QuizQuestion } from '@/types/types'
 import useQuizStore from '@/store/quizStore'
 import { Input } from '../ui/input'
 import useRoomStore from '@/store/roomStore'
@@ -10,6 +10,7 @@ import { useJoinRoomSocket } from '@/hooks/useJoinRoomSocket'
 import { toast } from 'sonner'
 import axios from 'axios'
 import { cn } from '@/lib/utils'
+import UserLeaderboard from '../quizbuilder/UserLeaderboard'
 
 const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interaction) => void}) => {
     const currentQuestion = useQuizStore((s) => s.currentQuestion);
@@ -27,6 +28,7 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
     const socket = useSocket();
     const [revealedAnswerId, setRevealedAnswerId] = useState<string | null>(null)
     const [showAnswerFeedback, setShowAnswerFeedback] = useState(false)
+    const [leaderboard, setLeaderboard] = useState<QuizLeaderboard[]>([])
 
     useJoinRoomSocket({socket, roomId, userId: user?.id})
 
@@ -49,6 +51,27 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
             console.log("Failed to join a quiz: ", err)
         }
     }
+
+    useEffect(() => {
+        if (!socket) return;
+        const handleLeaderboardReveal = (data: QuizLeaderboardProps) => {
+            setLeaderboard(data.leaderboard)
+        };
+        
+        const attachListener = () => {
+            socket.on("leaderboard-revealed", handleLeaderboardReveal)
+        };
+
+        if (socket.connected) {
+            attachListener();
+        }
+
+        socket.on("connect", attachListener);
+        return () => {
+            socket.off("connect", attachListener);
+            socket.off("leaderboard-revealed", handleLeaderboardReveal)
+        }
+    }, [socket])
 
     useEffect(() => {
         if (!currentQuestion?.timerSeconds) return;
@@ -208,6 +231,12 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
                 </div>
             </div>
         )
+    }
+
+    if(leaderboard.length > 0){
+        return <div className=''>
+            <UserLeaderboard leaderboard={leaderboard} />
+        </div> 
     }
 
     return (

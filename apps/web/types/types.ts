@@ -109,6 +109,13 @@ export type QuizParticipant = {
     joinedAt: string
 }
 
+export type QuizLeaderboard = {
+    rank: number,
+    userId: string,
+    name: string,
+    score: number,
+}
+
 export type Interaction = "qna" | "poll" | "quiz"
 
 // store
@@ -183,3 +190,9 @@ export interface IQuizQuestion {
 }
 
 export type IQuizBuilderStages = 'build' | 'waiting' | 'question' | 'leaderboard'
+
+export interface QuizLeaderboardProps {
+    quizId: string,
+    quizName: string,
+    leaderboard: QuizLeaderboard[]
+}

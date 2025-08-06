@@ -28,6 +28,9 @@ const AdminQuestionCard = ({setStep}: {setStep: (step: IQuizBuilderStages) => vo
         0
     ) ?? 0;
 
+    const isLastQuestion = currentQuestion?.order === (activeQuiz?.quizQuestions.length ?? 0) - 1;
+    const isAnswerRevealed = currentQuestion?.isAnswerRevealed;
+
     useEffect(() => {
         if (!socket || !roomId) return;
 
@@ -79,7 +82,6 @@ const AdminQuestionCard = ({setStep}: {setStep: (step: IQuizBuilderStages) => vo
                 toast.error("No more questions left!");
                 return;
             }
-            if (!nextQuestion) return;
 
             setActiveQuestion(nextQuestion);
             
@@ -96,19 +98,33 @@ const AdminQuestionCard = ({setStep}: {setStep: (step: IQuizBuilderStages) => vo
     }
     const handleRevealAnswer = () => {
         try {
-            if(!activeQuiz) return;
-            const current = currentQuestion;
-            if (!current) return;
+            if(!activeQuiz || !currentQuestion) return;
             
             socket.emit("reveal-answer", {
                 quizId: activeQuiz.id,
                 userId: user?.id,
                 roomId,
-                quizQuestionId: current?.id
+                quizQuestionId: currentQuestion?.id
             })
 
         } catch (err) {
             console.log("Error revealing the answer: ", err)
+        }
+    }
+
+    const handleRevealLeaderboard = () => {
+        try {
+            if(!activeQuiz || !currentQuestion) return;
+
+            socket.emit("reveal-leaderboard", {
+                quizId: activeQuiz.id,
+                roomId,
+                userId: user?.id
+            })
+
+            setStep("leaderboard")
+        } catch(err) {
+            console.log("Error revealing the leaderboard: ", err)
         }
     }
 
@@ -119,7 +135,7 @@ const AdminQuestionCard = ({setStep}: {setStep: (step: IQuizBuilderStages) => vo
         <>
             <div className='p-2 flex flex-col gap-2 mt-2 shadow-[0px_0px_2px_-1px_rgba(0,0,0,0.1),0px_1px_0px_0px_rgba(25,28,33,0.02),0px_0px_0px_1px_rgba(25,28,33,0.08)] border border-input rounded-sm'>
                 <div className='flex justify-between'>
-                    <span className='font-medium'>Question 1</span>
+                    <span className='font-medium'>Question {(currentQuestion?.order ?? 0 + 1) || 1}</span>
                 </div>
                 <p className='text-2xl font-semibold text-foreground/90 border border-input rounded-sm p-4 h-22 flex items-center'>
                     {currentQuestion?.question || 'What would you like to ask?'}
@@ -150,25 +166,26 @@ const AdminQuestionCard = ({setStep}: {setStep: (step: IQuizBuilderStages) => vo
                     )
                 })}
             </div>
-            <div className="absolute bottom-0 left-0 right-0 h-12 bg-input/20 flex items-center px-2">
+            <div className="absolute bottom-0 left-0 right-0 h-12 bg-input/20 flex items-center gap-2 px-4">
                 {/* {JSON.stringify(currentQuestion)} */}
                 {/* {currentQuestion?.isAnswerRevealed === true && <p className="text-sm mr-2">✅ Answer revealed</p>} */}
 
-                {currentQuestion?.isAnswerRevealed ? (
+                <Button
+                    variant={"default"}
+                    className='px-4 py-2 rounded-sm disabled:opacity-50'
+                    onClick={isAnswerRevealed ? handleNextQuestion : handleRevealAnswer}
+                    disabled={isLastQuestion && isAnswerRevealed}
+                >
+                    {isAnswerRevealed ? "Next Question" : "Reveal Answer"}
+                </Button>
+                
+                {isLastQuestion && isAnswerRevealed && (
                     <Button
-                        variant={"default"}
+                        variant={"secondary"}
                         className='px-4 py-2 rounded-sm disabled:opacity-50'
-                        onClick={handleNextQuestion}
+                        onClick={handleRevealLeaderboard}
                     >
-                        Next Question
-                    </Button>
-                ) : (
-                    <Button
-                        variant={"default"}
-                        className='px-4 py-2 rounded-sm disabled:opacity-50'
-                        onClick={handleRevealAnswer}                        
-                    >
-                        Reveal Answer
+                        Reveal Leaderboard
                     </Button>
                 )}
             </div>

@@ -105,7 +105,7 @@ const QuizForm = ({quizName, setStep} : {quizName: string, setStep: (step: IQuiz
                 <div className='flex gap-2 mt-4'>
                     <Button
                         onClick={handleAddQuestion}
-                        variant={"ghost"}
+                        variant={"outline"}
                         className='px-4 py-2 rounded-sm disabled:opacity-50'
                     >
                         <Plus size={16} />
