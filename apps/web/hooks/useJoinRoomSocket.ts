@@ -12,7 +12,7 @@ export function useJoinRoomSocket({ socket, roomId, userId }: UseJoinRoomSocketP
         if (!socket || !roomId || !userId) return;
 
         const joinRoom = () => {
-            console.log("🔌 Socket connected, emitting join-room:", { roomId, userId });
+            // console.log("🔌 Socket connected, emitting join-room:", { roomId, userId });
             socket.emit("join-room", { roomId, userId });
         };
 

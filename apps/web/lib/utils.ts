@@ -31,3 +31,17 @@ export const timeAgo = (timeCreated: string | Date): string => {
   if(weeks < 4) return `${weeks} week${weeks !== 1 ? "s" : ""} ago`;
   return `${months} month${months !== 1 ? "s" : ""} ago`;
 }
+
+const funColors = [
+  'bg-rose-200/50',
+  'bg-lime-200/50',
+  'bg-sky-200/50',
+  'bg-orange-200/50',
+  'bg-violet-200/50',
+  'bg-emerald-200/50',
+  'bg-fuchsia-200/50',
+  'bg-indigo-200/50',
+  'bg-cyan-200/50',
+];
+
+export const getFunBg = (rank: number) => funColors[(rank - 1) % funColors.length] || 'bg-muted/30';

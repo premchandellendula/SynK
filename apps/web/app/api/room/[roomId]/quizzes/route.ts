@@ -66,31 +66,49 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{room
                 creatorId: auth.userId,
                 status: "LAUNCHED",
                 quizQuestions: {
-                    create: quizQuestions.map((q) => ({
+                    create: quizQuestions.map((q, index) => ({
                         question: q.quizQuestion,
                         voteCount: 0,
+                        order: index,
                         quizOptions: {
                             create: q.quizOptions.map((opt) => ({
                                 text: opt.text,
                                 isCorrect: opt.isCorrect,
                                 voteCount: 0,
-                            }))
-                        }
-                    }))
-                }
+                            })),
+                        },
+                        timerSeconds: 30,
+                    })),
+                },
             },
+        });
+
+        const fullQuiz = await prisma.quiz.findUnique({
+            where: { id: quiz.id },
             include: {
-                quizQuestions: {
+                currentQuestion: {
                     include: {
-                        quizOptions: true
-                    }
-                }
-            }
-        })
+                        quizOptions: {
+                            include: { quizVotes: true },
+                        },
+                        quizVotes: true,
+                    },
+                },
+                quizQuestions: {
+                    orderBy: {
+                        order: 'asc',
+                    },
+                    include: {
+                        quizOptions: true,
+                        quizVotes: true,
+                    },
+                },
+            },
+        });
 
         return NextResponse.json({
             message: "Quiz created and launched successfully.",
-            quiz
+            quiz: fullQuiz
         }, { status: 201 });
     }catch(err) {
         console.log("Error creating a quiz: ", err)
@@ -123,25 +141,25 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{roomI
             where: {
                 roomId
             },
-            select: {
-                id: true,
-                quizName: true,
-                roomId: true,
-                creatorId: true,
-                createdAt: true,
-                updatedAt: true,
-                quizQuestions: {
-                    select: {
-                        id: true,
-                        question: true,
-                        voteCount: true,
+            include: {
+                currentQuestion: {
+                    include: {
                         quizOptions: {
-                            select: {
-                                id: true,
-                                text: true,
-                                voteCount: true,
+                            include: {
+                                quizVotes: true
                             }
-                        }
+                        },
+                        quizVotes: true
+                    }
+                },
+                quizQuestions: {
+                    include: {
+                        quizOptions: {
+                            include: {
+                                quizVotes: true
+                            }
+                        },
+                        quizVotes: true
                     }
                 }
             }

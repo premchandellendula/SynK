@@ -22,7 +22,7 @@ const AdminQuestions = () => {
         if (!socket || !roomId || !user?.id) return;
 
         const handleConnect = () => {
-            console.log("Socket connected, emitting join-room:", { roomId, userId: user.id });
+            // console.log("Socket connected, emitting join-room:", { roomId, userId: user.id });
             socket.emit("join-room", { roomId, userId: user.id });
         };
 

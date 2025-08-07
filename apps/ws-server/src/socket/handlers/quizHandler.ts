@@ -3,33 +3,17 @@ import { Server, Socket } from "socket.io";
 
 export default function quizHandler(io: Server, socket: Socket){
     socket.on("start-quiz", (data) => {
-        if (typeof data === 'string') {
-            try {
-                data = JSON.parse(data);
-            } catch (e) {
-                console.error("Invalid JSON string received:", data);
-                return;
-            }
-        }
+        const { quizId, roomId, quiz, userId } = data;
 
-        const { quizId, roomId, userId } = data;
-
+        // console.log(quiz)
         io.to(roomId).emit("quiz-started", {
-            message: "start quiz"
+            message: "start quiz",
+            quiz
         })
-        socket.emit("joined-quiz", { quizId })
+        // socket.emit("joined-quiz", { quizId })
     })
 
     socket.on("join-quiz", async (data) => {
-        if (typeof data === 'string') {
-            try {
-                data = JSON.parse(data);
-            } catch (e) {
-                console.error("Invalid JSON string received:", data);
-                return;
-            }
-        }
-
         const { roomId, userId, quizId, name } = data;
 
         try {
@@ -68,26 +52,15 @@ export default function quizHandler(io: Server, socket: Socket){
                 })
             }
 
-            socket.join(quizId)
-            io.to(quizId).emit("user-joined", {
-                id: quizUser.id,
-                name: quizUser.name
+            io.to(roomId).emit("user-joined", {
+                quizUser
             })
         }catch(err) {
             console.log("Error joining the quiz: ", err);
             socket.emit("quiz-joining-error", { message: "Could not join the quiz. Try again." });
         }
     })
-    socket.on("launch-quiz", async (data) => {
-        if (typeof data === 'string') {
-            try {
-                data = JSON.parse(data);
-            } catch (e) {
-                console.error("Invalid JSON string received:", data);
-                return;
-            }
-        }
-
+    socket.on("set-current-question", async (data) => {
         const { quizId, roomId, quizQuestionId, userId } = data;
 
         try {
@@ -99,8 +72,7 @@ export default function quizHandler(io: Server, socket: Socket){
 
             if(!room){
                 throw new Error("Room not found")
-            }
-            
+            }        
             if (room.endDate < new Date() || room.status === "ENDED") {
                 throw new Error("Room has already ended. Cannot create quiz.")
             }
@@ -120,7 +92,7 @@ export default function quizHandler(io: Server, socket: Socket){
             }
 
             if (quiz.status !== "LAUNCHED") {
-                    throw new Error("Quiz is not running. Cannot activate questions.")
+                throw new Error("Quiz is not running. Cannot activate questions.")
             }
             const existingQuestion = await prisma.quizQuestion.findUnique({
                 where: { id: quizQuestionId }
@@ -141,7 +113,8 @@ export default function quizHandler(io: Server, socket: Socket){
                 }),
                 prisma.quiz.update({
                     where: {
-                        id: quizId
+                        id: quizId,
+                        roomId
                     },
                     data: {
                         currentQuestionId: quizQuestionId
@@ -161,23 +134,48 @@ export default function quizHandler(io: Server, socket: Socket){
                 where: {
                     id: quizQuestionId
                 },
-                select: {
-                    id: true,
-                    question: true,
-                    voteCount: true,
+                include: {
+                    quizVotes: true,
                     quizOptions: {
-                        select: {
-                            id: true,
-                            text: true,
-                            voteCount: true
+                        include: {
+                            quizVotes: true,
+                            quizQuestion: true
                         }
-                    },
-                    timerSeconds: true
+                    }
                 }
             })
-            
-            io.to(roomId).emit("quiz-question", {
-                question
+            const quizZ = await prisma.quiz.findUnique({
+                where: {
+                    id: quizId
+                },
+                include: {
+                    currentQuestion: {
+                        include: {
+                            quizOptions: {
+                                include: {
+                                    quizVotes: true
+                                }
+                            },
+                            quizVotes: true
+                        }
+                    },
+                    quizQuestions: {
+                        include: {
+                            quizOptions: {
+                                include: {
+                                    quizVotes: true
+                                }
+                            },
+                            quizVotes: true
+                        }
+                    }
+                }
+            })
+            // console.log(question)
+            // console.log(quizZ)
+            io.to(roomId).emit("current-question-set", {
+                question,
+                quiz: quizZ
             })
         }catch(err) {
             console.log("Error starting the quiz: ", err);
@@ -186,17 +184,8 @@ export default function quizHandler(io: Server, socket: Socket){
     })
 
     socket.on("quiz-answer", async (data) => {
-        if (typeof data === 'string') {
-            try {
-                data = JSON.parse(data);
-            } catch (e) {
-                console.error("Invalid JSON string received:", data);
-                return;
-            }
-        }
-
         const { quizId, quizQuestionId, userId, quizOptionId, roomId } = data;
-
+        // console.log(data)
         try {
             const room = await prisma.room.findUnique({
                 where: {
@@ -252,48 +241,89 @@ export default function quizHandler(io: Server, socket: Socket){
 
             await prisma.$transaction(async (tx) => {
                 const option = await tx.quizOption.findUnique({
-                    where: { id: quizOptionId},
+                    where: { id: quizOptionId },
                     select: {
                         isCorrect: true,
                         quizQuestionId: true,
                         quizQuestion: {
                             select: {
-                                quizId: true
-                            }
-                        }
-                    }
-                })
+                                quizId: true,
+                            },
+                        },
+                    },
+                });
 
                 if (!option) throw new Error("Invalid quiz option");
-
-                const quizId = option.quizQuestion.quizId;
 
                 await tx.quizVote.create({
                     data: {
                         quizOptionId,
-                        userId: userId,
-                        quizQuestionId: quizQuestionId
-                    }
+                        userId,
+                        quizQuestionId,
+                    },
                 });
+
+                await tx.quizOption.update({
+                    where: { id: quizOptionId },
+                    data: {
+                        voteCount: {
+                            increment: 1,
+                        },
+                    },
+                });
+
+                const leaderboardWhere = {
+                    quizId_userId: {
+                        quizId: option.quizQuestion.quizId,
+                        userId,
+                    },
+                };
 
                 if (option.isCorrect) {
                     await tx.quizLeaderBoard.upsert({
-                        where: {
-                            quizId_userId: {
-                                userId: userId,
-                                quizId: quizId
-                            }
-                        },
+                        where: leaderboardWhere,
                         create: {
-                            userId: userId,
-                            quizId: quizId,
-                            score: 1
+                            quizId: option.quizQuestion.quizId,
+                            userId,
+                            score: 1,
                         },
                         update: {
-                            score: { increment: 1 }
-                        }
+                                score: {increment: 1},
+                            },
                     });
+                }else{
+                    const existing = await tx.quizLeaderBoard.findUnique({
+                        where: leaderboardWhere
+                    })
+
+                    if(!existing){
+                        await tx.quizLeaderBoard.create({
+                            data: {
+                                quizId: option.quizQuestion.quizId,
+                                userId,
+                                score: 0,
+                            },
+                        })
+                    }
                 }
+            })
+            
+            const updatedOptions = await prisma.quizOption.findMany({
+                where: { quizQuestionId },
+                select: {
+                    id: true,
+                    text: true,
+                    voteCount: true,
+                    isCorrect: true,
+                },
+            });
+
+            console.log(updatedOptions)
+
+            io.to(roomId).emit("answered-quiz-question", {
+                quizQuestionId,
+                quizId,
+                quizOptionVotes: updatedOptions
             })
         }catch(err) {
             console.log("Error choosing the quiz option: ", err);
@@ -302,15 +332,6 @@ export default function quizHandler(io: Server, socket: Socket){
     })
 
     socket.on("reveal-answer", async (data) => {
-        if (typeof data === 'string') {
-            try {
-                data = JSON.parse(data);
-            } catch (e) {
-                console.error("Invalid JSON string received:", data);
-                return;
-            }
-        }
-
         const { quizId, quizQuestionId, userId, roomId } = data;
 
         try {
@@ -331,7 +352,7 @@ export default function quizHandler(io: Server, socket: Socket){
                 where: { id: quizId },
                 include: {
                     quizQuestions: {
-                        orderBy: { createdAt: 'asc' },
+                        orderBy: { order: 'asc' },
                     }
                 }
             });
@@ -352,17 +373,7 @@ export default function quizHandler(io: Server, socket: Socket){
             const isLastQuestion = currentQuestionIndex === quiz.quizQuestions.length - 1;
 
             const questionForReveal = await prisma.quizQuestion.findUnique({
-                where: { id: quizQuestionId },
-                include: {
-                    quizOptions: {
-                        select: {
-                            id: true,
-                            text: true,
-                            voteCount: true,
-                            isCorrect: true
-                        }
-                    }
-                }
+                where: { id: quizQuestionId }
             });
 
             if (!questionForReveal || questionForReveal.quizId !== quizId) {
@@ -374,16 +385,24 @@ export default function quizHandler(io: Server, socket: Socket){
                 data: { isAnswerRevealed: true }
             });
 
-            const { id, question, quizOptions } = questionForReveal;
+            const question = await prisma.quizQuestion.findUnique({
+                where: {id: quizQuestionId},
+                include: {
+                    quizOptions: {
+                        include: {
+                            quizVotes: true
+                        }
+                    },
+                    quizVotes: true
+                }
+            })
+            console.log("question- revealed: ", question)
+            
+            const correctOptionId = question?.quizOptions.find((option) => option.isCorrect === true)
+            // console.log("option revealed: ", correctOptionId)
             io.to(roomId).emit("answer-revealed", {
-                questionId: id,
                 question,
-                options: quizOptions.map(opt => ({
-                    id: opt.id,
-                    text: opt.text,
-                    isCorrect: opt.isCorrect,
-                    voteCount: opt.voteCount
-                }))
+                correctOptionId
             })
 
             if (isLastQuestion) {
@@ -405,16 +424,8 @@ export default function quizHandler(io: Server, socket: Socket){
     })
 
     socket.on("reveal-leaderboard", async (data) => {
-        if (typeof data === 'string') {
-            try {
-                data = JSON.parse(data);
-            } catch (e) {
-                console.error("Invalid JSON string received:", data);
-                return;
-            }
-        }
-
         const { quizId, roomId, userId } = data;
+        console.log("data: ", data)
         try {
             const room = await prisma.room.findUnique({
                 where: {
@@ -444,48 +455,151 @@ export default function quizHandler(io: Server, socket: Socket){
                 throw new Error("Quiz not found")
             }
 
-            const leaderboard = await prisma.quizLeaderBoard.findMany({
-                where: {
-                    quizId: quizId
-                },
-                select: {
-                    quiz: {
-                        select: {
-                            quizName: true
-                        }
-                    },
-                    user: {
-                        select: {
-                            id: true,
-                            name: true
-                        }
-                    },
-                    score: true
-                },
-                orderBy: {
-                    score: 'desc'
-                }
-            })
-            if (!leaderboard || leaderboard.length === 0) {
-                socket.emit("leaderboard-reveal-error", {
-                    message: "Leaderboard is empty or not yet calculated."
-                });
-                return;
-            }
-            const quizName = leaderboard[0]?.quiz.quizName ?? "Untitled Quiz"
+            // const leaderboard = await prisma.quizLeaderBoard.findMany({
+            //     where: {
+            //         quizId: quizId
+            //     },
+            //     select: {
+            //         quiz: {
+            //             select: {
+            //                 quizName: true
+            //             }
+            //         },
+            //         user: {
+            //             select: {
+            //                 id: true,
+            //                 name: true
+            //             }
+            //         },
+            //         score: true
+            //     },
+            //     orderBy: {
+            //         score: 'desc'
+            //     }
+            // })
+            // if (!leaderboard || leaderboard.length === 0) {
+            //     socket.emit("leaderboard-reveal-error", {
+            //         message: "Leaderboard is empty or not yet calculated."
+            //     });
+            //     return;
+            // }
+            // console.log(leaderboard);
+            // const quizName = leaderboard[0]?.quiz.quizName ?? "Untitled Quiz"
+            // io.to(roomId).emit("leaderboard-revealed", {
+            //     quizId,
+            //     quizName,
+            //     leaderboard: leaderboard.map((entry, idx) => ({
+            //         rank: idx + 1,
+            //         userId: entry.user.id,
+            //         name: entry.user.name,
+            //         score: entry.score
+            //     }))
+            // })
+
             io.to(roomId).emit("leaderboard-revealed", {
                 quizId,
-                quizName,
-                leaderboard: leaderboard.map((entry, idx) => ({
-                    rank: idx + 1,
-                    userId: entry.user.id,
-                    name: entry.user.name,
-                    score: entry.score
-                }))
+                roomId,
+                userId
             })
         }catch(err) {
             console.log("Error revealing the quiz leaderboard: ", err);
             socket.emit("leaderboard-reveal-error", { message: "Could not reveal leaderboard. Try again." });
+        }
+    })
+
+    socket.on("end-quiz", async (data) => {
+        const {quizId, roomId, userId} = data;
+
+        try {
+            const room = await prisma.room.findUnique({
+                where: {
+                    id: roomId
+                }
+            })
+
+            if(!room){
+                throw new Error("Room not found")
+            }
+
+            if (room.endDate < new Date() || room.status === "ENDED") {
+                throw new Error("Room has expired.")
+            }
+
+            if(room.creatorId !== userId){
+                throw new Error("Only the room owner can create or launch polls.")
+            }
+
+            const existingQuiz = await prisma.quiz.findUnique({
+                where: {
+                    id: quizId,
+                    roomId
+                }
+            })
+
+            if(!existingQuiz){
+                throw new Error("Quiz not found")
+            }
+
+            const quiz = await prisma.quiz.update({
+                where: {
+                    id: quizId,
+                    roomId
+                },
+                data: {
+                    status: QuizStatus.DRAFT
+                }
+            })
+
+            io.to(roomId).emit("quiz-ended", {
+                quiz
+            })
+        } catch(err) {
+            console.error("Error ending a  poll:", err);
+            socket.emit("ending-quiz-error", { message: "Could not end a quiz. Try again." });
+        }
+    })
+
+    socket.on("remove-quiz", async (data) => {
+        const {quizId, roomId, userId} = data;
+
+        try {
+            const room = await prisma.room.findUnique({
+                where: { id: roomId }
+            })
+
+            if(!room){throw new Error("Room not found")}
+
+            if (room.endDate < new Date() || room.status === "ENDED") {
+                    throw new Error("Room has expired.")
+            }
+
+            if(room.creatorId !== userId){
+                throw new Error("Only the room owner can create or launch polls.")
+            }
+
+            const existingQuiz = await prisma.quiz.findUnique({
+                where: {
+                    id: quizId,
+                    roomId
+                }
+            })
+
+            if(!existingQuiz){
+                throw new Error("Quiz not found")
+            }
+            const quiz = await prisma.quiz.delete({
+                where: {
+                    id: quizId,
+                    roomId
+                }
+            })
+
+            io.to(roomId).emit("quiz-removed", {
+                quiz
+            })
+        } catch(err) {
+            console.error("Error deleting a quiz:", err);
+            socket.emit("deleting-quiz-error", { message: "Could not delete a quiz. Try again." });
         }
     })
 }

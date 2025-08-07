@@ -3,7 +3,7 @@ import { MenuItemTab } from './AdminQuestionBox'
 import { Trash2, Trophy } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import QuizNameInput from '../quizbuilder/QuizNameInput'
-import QuizForm from '../quizbuilder/QuizForm'
+import QuizAdminContainer from '../quizbuilder/QuizAdminContainer'
 
 const AdminQuizBox = () => {
     const [quizName, setQuizName] = useState("");
@@ -19,7 +19,7 @@ const AdminQuizBox = () => {
                 <Tooltip>
                     <div className='p-2 rounded-full'>
                         <TooltipTrigger asChild>
-                                <Trash2 size={17} className='hover:text-red-400 cursor-pointer' />
+                            <Trash2 size={17} className='hover:text-red-400 cursor-pointer' />
                         </TooltipTrigger>
                     </div>
                     <TooltipContent>
@@ -28,7 +28,7 @@ const AdminQuizBox = () => {
                 </Tooltip>
             </div>
             {step === 0 && <QuizNameInput setQuizName={setQuizName} quizName={quizName} next={next} />}
-            {step === 1 && <QuizForm />}
+            {step === 1 && <QuizAdminContainer quizName={quizName} />}
         </div>
     )
 }
