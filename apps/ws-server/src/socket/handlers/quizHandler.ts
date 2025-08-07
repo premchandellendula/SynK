@@ -272,25 +272,39 @@ export default function quizHandler(io: Server, socket: Socket){
                     },
                 });
 
+                const leaderboardWhere = {
+                    quizId_userId: {
+                        quizId: option.quizQuestion.quizId,
+                        userId,
+                    },
+                };
+
                 if (option.isCorrect) {
                     await tx.quizLeaderBoard.upsert({
-                        where: {
-                            quizId_userId: {
-                                quizId: option.quizQuestion.quizId,
-                                userId,
-                            },
-                        },
+                        where: leaderboardWhere,
                         create: {
                             quizId: option.quizQuestion.quizId,
                             userId,
-                            score: option.isCorrect ? 1 : 0,
+                            score: 1,
                         },
-                        update: option.isCorrect  
-                            ? {
+                        update: {
                                 score: {increment: 1},
-                            }
-                            : {},
+                            },
                     });
+                }else{
+                    const existing = await tx.quizLeaderBoard.findUnique({
+                        where: leaderboardWhere
+                    })
+
+                    if(!existing){
+                        await tx.quizLeaderBoard.create({
+                            data: {
+                                quizId: option.quizQuestion.quizId,
+                                userId,
+                                score: 0,
+                            },
+                        })
+                    }
                 }
             })
             
@@ -411,6 +425,7 @@ export default function quizHandler(io: Server, socket: Socket){
 
     socket.on("reveal-leaderboard", async (data) => {
         const { quizId, roomId, userId } = data;
+        console.log("data: ", data)
         try {
             const room = await prisma.room.findUnique({
                 where: {
@@ -440,45 +455,51 @@ export default function quizHandler(io: Server, socket: Socket){
                 throw new Error("Quiz not found")
             }
 
-            const leaderboard = await prisma.quizLeaderBoard.findMany({
-                where: {
-                    quizId: quizId
-                },
-                select: {
-                    quiz: {
-                        select: {
-                            quizName: true
-                        }
-                    },
-                    user: {
-                        select: {
-                            id: true,
-                            name: true
-                        }
-                    },
-                    score: true
-                },
-                orderBy: {
-                    score: 'desc'
-                }
-            })
-            if (!leaderboard || leaderboard.length === 0) {
-                socket.emit("leaderboard-reveal-error", {
-                    message: "Leaderboard is empty or not yet calculated."
-                });
-                return;
-            }
-            console.log(leaderboard);
-            const quizName = leaderboard[0]?.quiz.quizName ?? "Untitled Quiz"
+            // const leaderboard = await prisma.quizLeaderBoard.findMany({
+            //     where: {
+            //         quizId: quizId
+            //     },
+            //     select: {
+            //         quiz: {
+            //             select: {
+            //                 quizName: true
+            //             }
+            //         },
+            //         user: {
+            //             select: {
+            //                 id: true,
+            //                 name: true
+            //             }
+            //         },
+            //         score: true
+            //     },
+            //     orderBy: {
+            //         score: 'desc'
+            //     }
+            // })
+            // if (!leaderboard || leaderboard.length === 0) {
+            //     socket.emit("leaderboard-reveal-error", {
+            //         message: "Leaderboard is empty or not yet calculated."
+            //     });
+            //     return;
+            // }
+            // console.log(leaderboard);
+            // const quizName = leaderboard[0]?.quiz.quizName ?? "Untitled Quiz"
+            // io.to(roomId).emit("leaderboard-revealed", {
+            //     quizId,
+            //     quizName,
+            //     leaderboard: leaderboard.map((entry, idx) => ({
+            //         rank: idx + 1,
+            //         userId: entry.user.id,
+            //         name: entry.user.name,
+            //         score: entry.score
+            //     }))
+            // })
+
             io.to(roomId).emit("leaderboard-revealed", {
                 quizId,
-                quizName,
-                leaderboard: leaderboard.map((entry, idx) => ({
-                    rank: idx + 1,
-                    userId: entry.user.id,
-                    name: entry.user.name,
-                    score: entry.score
-                }))
+                roomId,
+                userId
             })
         }catch(err) {
             console.log("Error revealing the quiz leaderboard: ", err);

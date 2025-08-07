@@ -12,9 +12,14 @@ import axios from 'axios'
 import { cn } from '@/lib/utils'
 import UserLeaderboard from '../quizbuilder/UserLeaderboard'
 
+interface IQuizLeaderboardDataUser {
+    topThree: QuizLeaderboard[],
+    user: QuizLeaderboard
+}
+
 const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interaction) => void}) => {
     const currentQuestion = useQuizStore((s) => s.currentQuestion);
-    console.log("currentQuestion: ", currentQuestion);
+    // console.log("currentQuestion: ", currentQuestion);
     const activeQuiz = useQuizStore((s) => s.activeQuiz);
     const setActiveQuiz = useQuizStore((s) => s.setActiveQuiz);
     const setActiveQuestion = useQuizStore((s) => s.setActiveQuestion);
@@ -28,7 +33,15 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
     const socket = useSocket();
     const [revealedAnswerId, setRevealedAnswerId] = useState<string | null>(null)
     const [showAnswerFeedback, setShowAnswerFeedback] = useState(false)
-    const [leaderboard, setLeaderboard] = useState<QuizLeaderboard[]>([])
+    const [leaderboardData, setLeaderboardData] = useState<IQuizLeaderboardDataUser>({
+        topThree: [],
+        user: {
+            userId: "",
+            rank: 0,
+            score: 0,
+            name: ""
+        }
+    })
 
     useJoinRoomSocket({socket, roomId, userId: user?.id})
 
@@ -54,8 +67,16 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
 
     useEffect(() => {
         if (!socket) return;
-        const handleLeaderboardReveal = (data: QuizLeaderboardProps) => {
-            setLeaderboard(data.leaderboard)
+        const handleLeaderboardReveal = async (data: {quizId: string, roomId: string, userId: string}) => {
+            try {
+                const response = await axios.get(`/api/room/${data.roomId}/quizzes/${data.quizId}/leaderboard/user`, {
+                    withCredentials: true
+                })
+                console.log(response.data)
+                setLeaderboardData(response.data)
+            } catch(err) {
+                console.log("Error fetching the leaderboard: ", err)
+            }
         };
         
         const attachListener = () => {
@@ -178,7 +199,7 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
                 toast.warning("Please select an option")
                 return;
             }
-            alert("hi")
+            
             socket.emit("quiz-answer", {
                 quizId: activeQuiz?.id,
                 quizQuestionId: currentQuestion?.id,
@@ -186,6 +207,7 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
                 roomId,
                 userId: user?.id
             });
+            toast.success("Answered the quiz")
 
         } catch(err) {
             console.error('Failed to add vote:', err);
@@ -233,9 +255,9 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
         )
     }
 
-    if(leaderboard.length > 0){
+    if(leaderboardData.topThree.length > 0){
         return <div className=''>
-            <UserLeaderboard leaderboard={leaderboard} />
+            <UserLeaderboard leaderboard={leaderboardData} />
         </div> 
     }
 
