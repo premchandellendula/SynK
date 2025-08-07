@@ -42,7 +42,7 @@ const QuizAdminContainer = ({quizName}: {quizName: string}) => {
             {step === "build" && <QuizForm quizName={quizName} setStep={setStep} />}
             {step === "waiting" && <WaitingLobby setStep={setStep} />}
             {step === "question" && <AdminQuestionCard setStep={setStep} />}
-            {step === "leaderboard" && <Leaderboard setStep={setStep} />}
+            {step === "leaderboard" && <Leaderboard />}
         </>
     )
 }
