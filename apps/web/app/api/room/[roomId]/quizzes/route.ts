@@ -78,6 +78,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{room
                             })),
                         },
                         timerSeconds: 30,
+                        questionStartedAt: null
                     })),
                 },
             },

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Button } from '../ui/button'
-import { Interaction, Quiz, QuizLeaderboard, QuizLeaderboardProps, QuizOption, QuizQuestion } from '@/types/types'
+import { Interaction, Quiz, QuizLeaderboard, QuizOption, QuizQuestion } from '@/types/types'
 import useQuizStore from '@/store/quizStore'
 import { Input } from '../ui/input'
 import useRoomStore from '@/store/roomStore'
@@ -9,7 +9,7 @@ import { useSocket } from '@/hooks/useSocket'
 import { useJoinRoomSocket } from '@/hooks/useJoinRoomSocket'
 import { toast } from 'sonner'
 import axios from 'axios'
-import { cn } from '@/lib/utils'
+import { cn, getQuestionState } from '@/lib/utils'
 import UserLeaderboard from '../quizbuilder/UserLeaderboard'
 
 interface IQuizLeaderboardDataUser {
@@ -24,6 +24,10 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
     const setActiveQuiz = useQuizStore((s) => s.setActiveQuiz);
     const setActiveQuestion = useQuizStore((s) => s.setActiveQuestion);
     const setCurrentQuestion = useQuizStore((s) => s.setCurrentQuestion);
+    const setHasVotedCurrentQuestion = useQuizStore((s) => s.setHasVotedCurrentQuestion)
+    const hasVotedCurrentQuestion = useQuizStore((s) => s.hasVotedCurrentQuestion);
+    console.log("hasVotedCurrentQuestion: ", hasVotedCurrentQuestion);
+    const checkCurrentQuestionAnswered = useQuizStore((s) => s.checkCurrentQuestionAnswered)
     const [selected, setSelected] = useState<string | null>(null)
     const [name, setName] = useState<string>("");
     const { checkAndRestoreUser, hasJoined, setHasJoined, participantName } = useQuizStore();
@@ -35,12 +39,7 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
     const [showAnswerFeedback, setShowAnswerFeedback] = useState(false)
     const [leaderboardData, setLeaderboardData] = useState<IQuizLeaderboardDataUser>({
         topThree: [],
-        user: {
-            userId: "",
-            rank: 0,
-            score: 0,
-            name: ""
-        }
+        user: { userId: "", rank: 0, score: 0, name: "" }
     })
 
     useJoinRoomSocket({socket, roomId, userId: user?.id})
@@ -72,7 +71,7 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
                 const response = await axios.get(`/api/room/${data.roomId}/quizzes/${data.quizId}/leaderboard/user`, {
                     withCredentials: true
                 })
-                console.log(response.data)
+                // console.log(response.data)
                 setLeaderboardData(response.data)
             } catch(err) {
                 console.log("Error fetching the leaderboard: ", err)
@@ -95,9 +94,13 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
     }, [socket])
 
     useEffect(() => {
-        if (!currentQuestion?.timerSeconds) return;
+        if (!currentQuestion?.timerSeconds || !currentQuestion.questionStartedAt) return;
+        
+        const { remainingSeconds } = getQuestionState(currentQuestion);
+        setTimeLeft(remainingSeconds);
 
-        setTimeLeft(currentQuestion.timerSeconds);
+        if (remainingSeconds <= 0) return;
+
         const interval = setInterval(() => {
             setTimeLeft((prev) => {
                 if (prev === null) return null;
@@ -110,21 +113,7 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [currentQuestion?.id]);
-
-    useEffect(() => {
-        if (!socket || !roomId) return;
-
-        const handleQuestionStarted = (data: {question: QuizQuestion}) => {
-            setActiveQuestion(data.question)
-        }
-
-        socket.on("question-started", handleQuestionStarted);
-
-        return () => {
-            socket.off("question-started", handleQuestionStarted);
-        }
-    }, [socket, roomId]);
+    }, [currentQuestion?.id, currentQuestion?.questionStartedAt]);
 
     useEffect(() => {
         if (!socket) return;
@@ -164,15 +153,19 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
     useEffect(() => {
         if (!socket || !roomId) return;
 
-        const handleUserJoined = (data: { question: QuizQuestion, quiz: Quiz}) => {
-            console.log("🚀 Received current-question-set:", data);
+        const handleCurrentQuestionSet = (data: { question: QuizQuestion, quiz: Quiz}) => {
+            // console.log("🚀 Received current-question-set:", data);
             setActiveQuiz(data.quiz);
             setCurrentQuestion(data.question)
+            setHasVotedCurrentQuestion(false);
+            setSelected(null);
+            setRevealedAnswerId(null);
+            setShowAnswerFeedback(false);
         };
 
         const attachListener = () => {
-            console.log("hehdjfke")
-            socket.on("current-question-set", handleUserJoined);
+            // console.log("hehdjfke")
+            socket.on("current-question-set", handleCurrentQuestionSet);
         };
 
         if (socket.connected) {
@@ -182,7 +175,7 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
         socket.on("connect", attachListener);
 
         return () => {
-            socket.off("current-question-set", handleUserJoined);
+            socket.off("current-question-set", handleCurrentQuestionSet);
             socket.off("connect", attachListener);
         };
     }, [socket, setActiveQuiz]);
@@ -192,6 +185,23 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
             checkAndRestoreUser(user.id, activeQuiz.id);
         }
     }, [user?.id, activeQuiz?.id]);
+
+    useEffect(() => {
+        if(user?.id && currentQuestion?.id){
+            checkCurrentQuestionAnswered(user.id, currentQuestion.id);
+
+            const userVote = currentQuestion.quizVotes.find(vote => vote.userId === user.id)
+            console.log(currentQuestion.quizVotes)
+            console.log("userVote: ", userVote)
+            if(userVote){
+                setSelected(userVote.quizOptionId)
+                setHasVotedCurrentQuestion(true)
+            }else{
+                setSelected(null);
+                setHasVotedCurrentQuestion(false);
+            }
+        }
+    }, [user?.id, currentQuestion?.id])
 
     const handleQuizQuestionVote = () => {
         try {
@@ -207,19 +217,20 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
                 roomId,
                 userId: user?.id
             });
+            setHasVotedCurrentQuestion(true)
             toast.success("Answered the quiz")
-
         } catch(err) {
             console.error('Failed to add vote:', err);
         }
     }
 
-    useEffect(() => {
-        console.log("currentQuestion updated", currentQuestion);
-        setSelected(null);
-        setRevealedAnswerId(null);
-        setShowAnswerFeedback(false);
-    }, [currentQuestion]);
+    // useEffect(() => {
+    //     // console.log("currentQuestion updated", currentQuestion);
+    //     setSelected(null);
+    //     setRevealedAnswerId(null);
+    //     setShowAnswerFeedback(false);
+    // }, [currentQuestion]);
+
     if(!activeQuiz){
         return (
             <div className='flex flex-col justify-center items-center mt-20'>
@@ -277,21 +288,13 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
                     const isCorrect = option.id === revealedAnswerId;
                     const isWrongSelection = isSelected && !isCorrect;
 
-                    let optionStyle = "bg-input/70 text-foreground";
-                    if (showAnswerFeedback) {
-                        if (isCorrect) {
-                            optionStyle = "bg-green-700 text-white";
-                        } else if (isWrongSelection) {
-                            optionStyle = "bg-red-700 text-white";
-                        }
-                    } else if (isSelected) {
-                        optionStyle = "bg-green-800 text-white";
-                    }
                     return (
                         <label 
                             key={i} 
                             className={cn(
                                 "rounded-md p-2 flex items-center gap-1.5 cursor-pointer transition-colors bg-input/70 text-foreground", 
+                                !hasVotedCurrentQuestion && !showAnswerFeedback && 'cursor-pointer',
+                                (hasVotedCurrentQuestion || showAnswerFeedback) && 'cursor-default',
                                 isSelected && 'bg-green-800 text-white',
                                 showAnswerFeedback && isCorrect && 'bg-green-700 text-white',
                                 showAnswerFeedback && isWrongSelection && 'bg-red-700 text-white',
@@ -302,13 +305,18 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
                                 className={`appearance-none w-3 h-3 rounded-full border-2 ${isSelected? "border-white": "border-green-600"} checked:bg-green-800`} 
                                 onChange={() => setSelected(option.id)} 
                                 checked={isSelected}  
-                                disabled={showAnswerFeedback}
+                                disabled={showAnswerFeedback || hasVotedCurrentQuestion}
                             />
                             <span className='text-base'>{option.text}</span>
                         </label>
                     )
                 })}
             </div>
+            {hasVotedCurrentQuestion && !showAnswerFeedback && (
+                <p className='text-sm text-muted-foreground text-center mt-2'>
+                    You&apos;ve submitted your answer.
+                </p>
+            )}
             {showAnswerFeedback && (
                 <div className='text-center mt-2'>
                     {selected === revealedAnswerId ? (
@@ -324,7 +332,11 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
                 </div>
             )}
             <div className='flex items-center justify-center mt-4'>
-                <Button className='w-20 text-base' disabled={timeLeft === 0 || showAnswerFeedback} onClick={handleQuizQuestionVote}>Submit</Button>
+                <Button className='w-20 text-base' disabled={timeLeft === 0 || showAnswerFeedback || hasVotedCurrentQuestion} onClick={handleQuizQuestionVote}>Submit</Button>
+                <p className='text-white'>
+                {hasVotedCurrentQuestion}
+
+                </p>
             </div>
         </div>
     )

@@ -168,6 +168,7 @@ model QuizQuestion {
   isAnswerRevealed       Boolean      @default(false)
   timerSeconds           Int?
   currentQuestionForQuiz Quiz?        @relation("CurrentQuizQuestion")
+  questionStartedAt      DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

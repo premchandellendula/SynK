@@ -125,7 +125,8 @@ export default function quizHandler(io: Server, socket: Socket){
                         id: quizQuestionId
                     },
                     data: {
-                        isActive: true
+                        isActive: true,
+                        questionStartedAt: new Date()
                     }
                 })
             ]);
