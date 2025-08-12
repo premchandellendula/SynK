@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button } from '../ui/button'
 import { IQuizBuilderStages, Quiz, QuizOption, QuizQuestion } from '@/types/types'
 import useQuizStore from '@/store/quizStore'
@@ -7,6 +7,7 @@ import useRoomStore from '@/store/roomStore'
 import { useUser } from '@/hooks/useUser'
 import { useJoinRoomSocket } from '@/hooks/useJoinRoomSocket'
 import { toast } from 'sonner'
+import { getQuestionState } from '@/lib/utils'
 
 const AdminQuestionCard = ({setStep}: {setStep: (step: IQuizBuilderStages) => void}) => {
     const currentQuestion = useQuizStore((s) => s.currentQuestion);
@@ -20,6 +21,7 @@ const AdminQuestionCard = ({setStep}: {setStep: (step: IQuizBuilderStages) => vo
     const socket = useSocket();
     const roomId = useRoomStore((state) => state.room?.roomId)
     const { user } = useUser();
+    const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
     useJoinRoomSocket({socket, roomId, userId: user?.id})
     
@@ -32,11 +34,36 @@ const AdminQuestionCard = ({setStep}: {setStep: (step: IQuizBuilderStages) => vo
     const isAnswerRevealed = currentQuestion?.isAnswerRevealed;
 
     useEffect(() => {
+        console.log("hehdfjke")
+        if(!currentQuestion?.timerSeconds || !currentQuestion.questionStartedAt) return;
+        console.log(currentQuestion.questionStartedAt)
+        const { remainingSeconds } = getQuestionState(currentQuestion);
+        setTimeLeft(remainingSeconds);
+
+        if (remainingSeconds <= 0) return;
+
+        const interval = setInterval(() => {
+            setTimeLeft((prev) => {
+                if(prev === null) return null;
+                if(prev <= 1){
+                    clearInterval(interval)
+                    setTimeLeft(null);
+                    return 0;
+                }
+                return prev - 1;
+            })
+        }, 1000)
+
+        return () => clearInterval(interval);
+    }, [currentQuestion?.id, currentQuestion?.questionStartedAt])
+
+    useEffect(() => {
         if (!socket || !roomId) return;
 
         const handleCurrentQuestionSet = (data: { question: QuizQuestion; quiz: Quiz }) => {
             console.log("hello:", data.question);
             setActiveQuiz(data.quiz);
+            setCurrentQuestion(data.question)
         };
 
         const handleAnsweredQuizQuestion = (data: {
@@ -186,6 +213,15 @@ const AdminQuestionCard = ({setStep}: {setStep: (step: IQuizBuilderStages) => vo
                         onClick={handleRevealLeaderboard}
                     >
                         Reveal Leaderboard
+                    </Button>
+                )}
+                
+                {timeLeft !== null && (
+                    <Button 
+                        variant={"outline"}
+                        className='px-4 py-2 rounded-sm disabled:opacity-50'
+                    >
+                        Closes in {timeLeft}s
                     </Button>
                 )}
             </div>
