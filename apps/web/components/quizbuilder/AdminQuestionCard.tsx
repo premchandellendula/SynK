@@ -34,7 +34,6 @@ const AdminQuestionCard = ({setStep}: {setStep: (step: IQuizBuilderStages) => vo
     const isAnswerRevealed = currentQuestion?.isAnswerRevealed;
 
     useEffect(() => {
-        console.log("hehdfjke")
         if(!currentQuestion?.timerSeconds || !currentQuestion.questionStartedAt) return;
         console.log(currentQuestion.questionStartedAt)
         const { remainingSeconds } = getQuestionState(currentQuestion);

@@ -26,7 +26,6 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
     const setCurrentQuestion = useQuizStore((s) => s.setCurrentQuestion);
     const setHasVotedCurrentQuestion = useQuizStore((s) => s.setHasVotedCurrentQuestion)
     const hasVotedCurrentQuestion = useQuizStore((s) => s.hasVotedCurrentQuestion);
-    console.log("hasVotedCurrentQuestion: ", hasVotedCurrentQuestion);
     const checkCurrentQuestionAnswered = useQuizStore((s) => s.checkCurrentQuestionAnswered)
     const [selected, setSelected] = useState<string | null>(null)
     const [name, setName] = useState<string>("");
@@ -65,7 +64,7 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
     }
 
     useEffect(() => {
-        if (!socket) return;
+        if (!socket || !roomId) return;
         const handleLeaderboardReveal = async (data: {quizId: string, roomId: string, userId: string}) => {
             try {
                 const response = await axios.get(`/api/room/${data.roomId}/quizzes/${data.quizId}/leaderboard/user`, {
@@ -77,9 +76,28 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
                 console.log("Error fetching the leaderboard: ", err)
             }
         };
+
+        const handleQuizQuestionAnswerRevealed = ({question, correctOptionId}: {question: QuizQuestion, correctOptionId: QuizOption}) => {
+            // console.log("connected answer-revealed", question)
+            // console.log("connected answer-revealed correctOption", correctOptionId)
+            setRevealedAnswerId(correctOptionId.id)
+            setShowAnswerFeedback(true)
+        };
+
+        const handleCurrentQuestionSet = (data: { question: QuizQuestion, quiz: Quiz}) => {
+            // console.log("🚀 Received current-question-set:", data);
+            setActiveQuiz(data.quiz);
+            setCurrentQuestion(data.question)
+            setHasVotedCurrentQuestion(false);
+            setSelected(null);
+            setRevealedAnswerId(null);
+            setShowAnswerFeedback(false);
+        };
         
         const attachListener = () => {
             socket.on("leaderboard-revealed", handleLeaderboardReveal)
+            socket.on("answer-revealed", handleQuizQuestionAnswerRevealed)
+            socket.on("current-question-set", handleCurrentQuestionSet);
         };
 
         if (socket.connected) {
@@ -90,9 +108,12 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
         return () => {
             socket.off("connect", attachListener);
             socket.off("leaderboard-revealed", handleLeaderboardReveal)
+            socket.off("answer-revealed", handleQuizQuestionAnswerRevealed)
+            socket.off("current-question-set", handleCurrentQuestionSet);
         }
-    }, [socket])
+    }, [socket, activeQuiz?.id, setActiveQuiz])
 
+    // timer
     useEffect(() => {
         if (!currentQuestion?.timerSeconds || !currentQuestion.questionStartedAt) return;
         
@@ -116,30 +137,6 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
     }, [currentQuestion?.id, currentQuestion?.questionStartedAt]);
 
     useEffect(() => {
-        if (!socket) return;
-        const handleQuizQuestionAnswerRevealed = ({question, correctOptionId}: {question: QuizQuestion, correctOptionId: QuizOption}) => {
-            // console.log("connected answer-revealed", question)
-            // console.log("connected answer-revealed correctOption", correctOptionId)
-            setRevealedAnswerId(correctOptionId.id)
-            setShowAnswerFeedback(true)
-        };
-        
-        const attachListener = () => {
-            socket.on("answer-revealed", handleQuizQuestionAnswerRevealed)
-        };
-
-        if (socket.connected) {
-            attachListener();
-        }
-
-        socket.on("connect", attachListener);
-        return () => {
-            socket.off("connect", attachListener);
-            socket.off("answer-revealed", handleQuizQuestionAnswerRevealed)
-        }
-    }, [socket, activeQuiz?.id])
-
-    useEffect(() => {
         const fetchCurrentQuestion = async () => {
             const response = await axios.get(`/api/room/${roomId}/quizzes/${activeQuiz?.id}/questions/active`, {
                 withCredentials: true
@@ -151,36 +148,6 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
     }, [])
 
     useEffect(() => {
-        if (!socket || !roomId) return;
-
-        const handleCurrentQuestionSet = (data: { question: QuizQuestion, quiz: Quiz}) => {
-            // console.log("🚀 Received current-question-set:", data);
-            setActiveQuiz(data.quiz);
-            setCurrentQuestion(data.question)
-            setHasVotedCurrentQuestion(false);
-            setSelected(null);
-            setRevealedAnswerId(null);
-            setShowAnswerFeedback(false);
-        };
-
-        const attachListener = () => {
-            // console.log("hehdjfke")
-            socket.on("current-question-set", handleCurrentQuestionSet);
-        };
-
-        if (socket.connected) {
-            attachListener();
-        }
-
-        socket.on("connect", attachListener);
-
-        return () => {
-            socket.off("current-question-set", handleCurrentQuestionSet);
-            socket.off("connect", attachListener);
-        };
-    }, [socket, setActiveQuiz]);
-
-    useEffect(() => {
         if (user?.id && activeQuiz?.id) {
             checkAndRestoreUser(user.id, activeQuiz.id);
         }
@@ -189,17 +156,11 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
     useEffect(() => {
         if(user?.id && currentQuestion?.id){
             checkCurrentQuestionAnswered(user.id, currentQuestion.id);
-
             const userVote = currentQuestion.quizVotes.find(vote => vote.userId === user.id)
-            console.log(currentQuestion.quizVotes)
-            console.log("userVote: ", userVote)
-            if(userVote){
-                setSelected(userVote.quizOptionId)
-                setHasVotedCurrentQuestion(true)
-            }else{
-                setSelected(null);
-                setHasVotedCurrentQuestion(false);
-            }
+            // console.log(currentQuestion.quizVotes)
+            // console.log("userVote: ", userVote)
+            setSelected(userVote?.quizOptionId || null);
+            setHasVotedCurrentQuestion(!!userVote)
         }
     }, [user?.id, currentQuestion?.id])
 
@@ -223,13 +184,6 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
             console.error('Failed to add vote:', err);
         }
     }
-
-    // useEffect(() => {
-    //     // console.log("currentQuestion updated", currentQuestion);
-    //     setSelected(null);
-    //     setRevealedAnswerId(null);
-    //     setShowAnswerFeedback(false);
-    // }, [currentQuestion]);
 
     if(!activeQuiz){
         return (
@@ -267,9 +221,7 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
     }
 
     if(leaderboardData.topThree.length > 0){
-        return <div className=''>
-            <UserLeaderboard leaderboard={leaderboardData} />
-        </div> 
+        return <UserLeaderboard leaderboard={leaderboardData} />
     }
 
     return (
@@ -290,7 +242,7 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
 
                     return (
                         <label 
-                            key={i} 
+                            key={option.id} 
                             className={cn(
                                 "rounded-md p-2 flex items-center gap-1.5 cursor-pointer transition-colors bg-input/70 text-foreground", 
                                 !hasVotedCurrentQuestion && !showAnswerFeedback && 'cursor-pointer',
@@ -326,17 +278,13 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
 
                     ) : (
                         <p className='text-red-600 font-semibold text-lg'>
-                            Oops! That wasn’t the right one. Don’t give up!
+                            Oops! That wasn&apos;t the right one. Don&apos;t give up!
                         </p>
                     )}
                 </div>
             )}
             <div className='flex items-center justify-center mt-4'>
                 <Button className='w-20 text-base' disabled={timeLeft === 0 || showAnswerFeedback || hasVotedCurrentQuestion} onClick={handleQuizQuestionVote}>Submit</Button>
-                <p className='text-white'>
-                {hasVotedCurrentQuestion}
-
-                </p>
             </div>
         </div>
     )
