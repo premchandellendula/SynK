@@ -1,3 +1,4 @@
+import { QuizQuestion } from "@/types/types";
 import { clsx, type ClassValue } from "clsx"
 import { toast } from "sonner";
 import { twMerge } from "tailwind-merge"
@@ -45,3 +46,19 @@ const funColors = [
 ];
 
 export const getFunBg = (rank: number) => funColors[(rank - 1) % funColors.length] || 'bg-muted/30';
+
+
+export const getQuestionState = (question: QuizQuestion) => {
+  const now = new Date().getTime();
+  const startDate = new Date(question.questionStartedAt);
+  const start = startDate.getTime();
+
+  const elapsedTimeInSeconds = Math.floor((now - start) / 1000);
+  const remaining = question.timerSeconds - elapsedTimeInSeconds;
+
+  return {
+    isExpired: remaining <= 0,
+    remainingSeconds: Math.max(remaining, 0)
+  }
+
+}

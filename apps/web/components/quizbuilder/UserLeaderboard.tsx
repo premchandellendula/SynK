@@ -59,7 +59,10 @@ const UserLeaderboard = ({leaderboard}: {leaderboard: IQuizLeaderboardDataUser})
                 <Button
                     variant={"outline"}
                     className='px-4 py-2 rounded-sm disabled:opacity-50'
-                    onClick={() => setIsFullLeaderboardOpen(true)}
+                    onClick={() => {
+                        setIsFullLeaderboardOpen(true)
+                        document.body.style.overflow = 'hidden'
+                    }}
                 >
                     View full leaderboard
                 </Button>
@@ -79,7 +82,10 @@ const UserLeaderboard = ({leaderboard}: {leaderboard: IQuizLeaderboardDataUser})
                                 size={"icon"}
                                 variant={"ghost"}
                                 className="p-2 rounded-md cursor-pointer"
-                                onClick={() => setIsFullLeaderboardOpen(false)}
+                                onClick={() => {
+                                    setIsFullLeaderboardOpen(false)
+                                    document.body.style.overflow = 'unset'
+                                }}
                                 aria-label="Close leaderboard"
                             >
                                 <X size={18} />

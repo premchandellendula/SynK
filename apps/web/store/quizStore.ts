@@ -6,11 +6,13 @@ const useQuizStore = create<QuizStore>((set, get) => ({
     quizzes: [],
     activeQuiz: null,
     hasJoined: false,
+    hasVotedCurrentQuestion: false,
     participantName: "",
     quizParticipants: [],
     currentQuestion: null,
     setActiveQuestion: (question) => set({ currentQuestion: question }),
     setHasJoined: (hasJoined: boolean) => set({ hasJoined }),
+    setHasVotedCurrentQuestion: (hasVotedCurrentQuestion: boolean) => set({ hasVotedCurrentQuestion }),
     checkAndRestoreUser: (userId: string, quizId: string) => {
         const activeQuiz = get().activeQuiz;
 
@@ -21,6 +23,17 @@ const useQuizStore = create<QuizStore>((set, get) => ({
 
         if (participant) {
             set({ hasJoined: true, participantName: participant.name });
+        }
+    },
+    checkCurrentQuestionAnswered: (userId: string, quizQuestionId: string) => {
+        const currentQuestion = get().currentQuestion;
+
+        if(!currentQuestion || currentQuestion.id !== quizQuestionId) return;
+        const quizVotes = currentQuestion.quizVotes ?? []
+        const userVoted = quizVotes.find(p => p.userId === userId); 
+
+        if(userVoted){
+            set({ hasVotedCurrentQuestion: true })
         }
     },
     setParticipantName: (name: string) => set({ participantName: name }),

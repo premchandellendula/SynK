@@ -64,6 +64,7 @@ const WaitingLobby = ({setStep}: {setStep: (step: IQuizBuilderStages) => void}) 
 
     return (
         <div>
+            {/* {JSON.stringify(activeQuiz)} */}
             <div className='absolute top-12 bottom-12 left-0 right-0 overflow-y-auto p-2'>
                 <h2 className="text-xl font-semibold mb-2">Waiting for players...</h2>
                 <ul className="grid grid-cols-2 gap-2">

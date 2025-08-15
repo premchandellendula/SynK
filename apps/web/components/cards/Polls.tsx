@@ -29,7 +29,12 @@ const Polls = ({setInteraction}: {setInteraction: (val: Interaction) => void}) =
 
             const polls = response.data.polls;
 
-            setPolls(polls)
+            if(!polls){
+                setPolls([])
+            } else{
+                setPolls(polls)
+            }
+
         }
         fetchPolls()
     }, [])

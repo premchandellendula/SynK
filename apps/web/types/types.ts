@@ -83,7 +83,8 @@ export type QuizQuestion = {
     isActive: boolean,
     isAnswerRevealed: boolean,
     timerSeconds: number,
-    quizOptions: QuizOption[]
+    quizOptions: QuizOption[],
+    questionStartedAt: string,
 }
 
 export type QuizOption = {
@@ -154,13 +155,16 @@ export type QuizStore = {
     quizzes: Quiz[],
     activeQuiz: Quiz | null,
     hasJoined: boolean,
+    hasVotedCurrentQuestion: boolean,
     participantName: string,
     quizParticipants: QuizParticipant[],
     currentQuestion: QuizQuestion | null,
     setActiveQuestion: (question: QuizQuestion) => void,
     setQuizzes: (quizzes: Quiz[]) => void,
     checkAndRestoreUser: (userId: string, quizId: string) => void,
+    checkCurrentQuestionAnswered: (userId: string, quizQuestionId: string) => void,
     setHasJoined: (hasJoined: boolean) => void,
+    setHasVotedCurrentQuestion: (hasVotedCurrentQuestion: boolean) => void,
     setParticipantName: (name: string) => void,
     setActiveQuiz: (quiz: Quiz | null) => void,
     addQuizParticipant: (quizUser: QuizParticipant) => void,

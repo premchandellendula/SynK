@@ -11,6 +11,21 @@ const QuizAdminContainer = ({quizName}: {quizName: string}) => {
     const [step, setStep] = useState<IQuizBuilderStages>('build');
     const socket = useSocket();
     const { addQuiz } = useQuizStore();
+    const activeQuiz = useQuizStore(s => s.activeQuiz);
+    const setCurrentQuestion = useQuizStore(s => s.setCurrentQuestion);
+
+    useEffect(() => {
+        if(activeQuiz !== null){
+            if(activeQuiz.currentQuestion){
+                setStep("question");
+                setCurrentQuestion(activeQuiz.currentQuestion)
+                return;
+            }else{
+                setStep("leaderboard")
+                return;
+            }
+        }
+    }, [])
     useEffect(() => {
         if (!socket) return;
 
@@ -37,12 +52,13 @@ const QuizAdminContainer = ({quizName}: {quizName: string}) => {
         };
     }, [socket]);
 
+
     return (
         <>
             {step === "build" && <QuizForm quizName={quizName} setStep={setStep} />}
             {step === "waiting" && <WaitingLobby setStep={setStep} />}
             {step === "question" && <AdminQuestionCard setStep={setStep} />}
-            {step === "leaderboard" && <Leaderboard />}
+            {step === "leaderboard" && <Leaderboard setStep={setStep} />}
         </>
     )
 }
