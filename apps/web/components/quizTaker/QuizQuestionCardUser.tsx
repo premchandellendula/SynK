@@ -93,11 +93,17 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
             setRevealedAnswerId(null);
             setShowAnswerFeedback(false);
         };
+
+        const handleQuizEnd = (quiz: Quiz) => {
+            setActiveQuiz(null);
+            setInteraction("qna")
+        }
         
         const attachListener = () => {
             socket.on("leaderboard-revealed", handleLeaderboardReveal)
             socket.on("answer-revealed", handleQuizQuestionAnswerRevealed)
             socket.on("current-question-set", handleCurrentQuestionSet);
+            socket.on("quiz-ended", handleQuizEnd);
         };
 
         if (socket.connected) {
@@ -110,6 +116,7 @@ const QuizQuestionCardUser = ({setInteraction}: {setInteraction: (val: Interacti
             socket.off("leaderboard-revealed", handleLeaderboardReveal)
             socket.off("answer-revealed", handleQuizQuestionAnswerRevealed)
             socket.off("current-question-set", handleCurrentQuestionSet);
+            socket.off("quiz-ended", handleQuizEnd);
         }
     }, [socket, activeQuiz?.id, setActiveQuiz])
 

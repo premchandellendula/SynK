@@ -1,17 +1,27 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { MenuItemTab } from './AdminQuestionBox'
 import { Trash2, Trophy } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import QuizNameInput from '../quizbuilder/QuizNameInput'
 import QuizAdminContainer from '../quizbuilder/QuizAdminContainer'
+import useQuizStore from '@/store/quizStore'
 
 const AdminQuizBox = () => {
     const [quizName, setQuizName] = useState("");
     const [step, setStep] = useState<number>(0);
+    const activeQuiz = useQuizStore(s => s.activeQuiz);
 
     const next = () => {
         setStep(step + 1)
     }
+
+
+    useEffect(() => {
+        if(activeQuiz){
+            setStep(1);
+            return;
+        }
+    }, [])
     return (
         <div>
             <div className='flex justify-between items-center h-10 mb-2'>

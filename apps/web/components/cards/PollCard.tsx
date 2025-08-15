@@ -18,7 +18,7 @@ const PollCard = () => {
     const [options, setOptions] = useState(['', ''])
     const [loadingForAdd, setLoadingForAdd] = useState(false);
     const [loadingForLaunch, setLoadingForLaunch] = useState(false);
-    const { activePoll, addPoll, setActivePoll, polls } = usePollStore();
+    const { activePoll, addPoll, setActivePoll } = usePollStore();
     const roomId = useRoomStore((state) => state.room?.roomId)
     const socket = useSocket();
     const { user } = useUser();
@@ -248,11 +248,9 @@ function ActivePollCard(){
     useEffect(() => {
         if (!socket) return;
         const handlePollVoteAdded = ({pollId, optionVotes}: {pollId: string, optionVotes: PollOption[]}) => {
-            alert("hi")
             // console.log("🛠 OptionVotes received:", optionVotes);
             // console.log("🛠 First option:", optionVotes[0]);
             updateOptionVotes(pollId, optionVotes);
-            alert("end")
         };
         
         const attachListener = () => {

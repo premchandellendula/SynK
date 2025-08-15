@@ -409,13 +409,7 @@ export default function quizHandler(io: Server, socket: Socket){
             if (isLastQuestion) {
                 await prisma.quiz.update({
                     where: { id: quizId },
-                    data: { status: QuizStatus.STOPPED, currentQuestionId: null }
-                });
-
-                io.to(quiz.roomId).emit("quiz-complete", {
-                    quizId: quiz.id,
-                    message: "The quiz is over.",
-                    endedAt: new Date()
+                    data: { currentQuestionId: null }
                 });
             }
         }catch(err) {
@@ -455,47 +449,6 @@ export default function quizHandler(io: Server, socket: Socket){
             if(!quiz){
                 throw new Error("Quiz not found")
             }
-
-            // const leaderboard = await prisma.quizLeaderBoard.findMany({
-            //     where: {
-            //         quizId: quizId
-            //     },
-            //     select: {
-            //         quiz: {
-            //             select: {
-            //                 quizName: true
-            //             }
-            //         },
-            //         user: {
-            //             select: {
-            //                 id: true,
-            //                 name: true
-            //             }
-            //         },
-            //         score: true
-            //     },
-            //     orderBy: {
-            //         score: 'desc'
-            //     }
-            // })
-            // if (!leaderboard || leaderboard.length === 0) {
-            //     socket.emit("leaderboard-reveal-error", {
-            //         message: "Leaderboard is empty or not yet calculated."
-            //     });
-            //     return;
-            // }
-            // console.log(leaderboard);
-            // const quizName = leaderboard[0]?.quiz.quizName ?? "Untitled Quiz"
-            // io.to(roomId).emit("leaderboard-revealed", {
-            //     quizId,
-            //     quizName,
-            //     leaderboard: leaderboard.map((entry, idx) => ({
-            //         rank: idx + 1,
-            //         userId: entry.user.id,
-            //         name: entry.user.name,
-            //         score: entry.score
-            //     }))
-            // })
 
             io.to(roomId).emit("leaderboard-revealed", {
                 quizId,

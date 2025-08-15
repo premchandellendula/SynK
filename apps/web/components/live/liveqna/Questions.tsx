@@ -75,8 +75,6 @@ const Questions = () => {
         if(!roomId || !socket) return;
         const handleNewQuestion = (data: any) => {
             // console.log('Received new question:', data);
-            // alert("hi")
-
             if (data.userId !== user?.id) {
                 addQuestion(data.question);
             }
