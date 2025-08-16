@@ -1,18 +1,15 @@
-import { prisma } from "@repo/db";
-import { Button } from "@repo/ui/button";
-import { Card } from "@repo/ui/card";
+import Features from "@/components/landing/Features";
+import Footer from "@/components/landing/Footer";
+import Header from "@/components/landing/Header";
+import Hero from "@/components/landing/Hero";
 
 export default async function Home() {
-    const userData = await prisma.user.findFirst()
     return (
-        <div className="text-2xl">
-            {userData?.name ?? "No user added yet"}
-            <div className="max-w-7xl text-3xl">
-                hello hii
-            </div>
-            
-            <Button children="hello" appName="SynK" />
-            <div>hello</div>
+        <div className="min-h-screen">
+            <Header />
+            <Hero />
+            <Features />
+            <Footer />
         </div>
     )
 }
