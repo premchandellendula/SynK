@@ -62,7 +62,7 @@ const Footer = () => {
                                 asChild
                             >
                                 <a href={social.href} aria-label={social.name}>
-                                <social.icon className="h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
+                                    <social.icon className="h-5 w-5 group-hover:scale-110 transition-transform duration-300" />
                                 </a>
                             </Button>
                         ))}

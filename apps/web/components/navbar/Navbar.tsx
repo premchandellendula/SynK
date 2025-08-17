@@ -1,8 +1,12 @@
+"use client"
 import React from 'react'
 import Logo from '../ui/Logo'
 import ThemeButton from '../theme/ThemeButton'
+import { useUser } from '@/hooks/useUser';
 
 const Navbar = () => {
+    const { user } = useUser();
+    
     return (
         <nav className='w-full flex justify-between items-center border-b border-sidebar-border px-6'>
             <div className='flex items-center'>
@@ -11,7 +15,7 @@ const Navbar = () => {
             </div>
             <div className='flex gap-2'>
                 <ThemeButton />
-                <div className='h-9 w-9 bg-neutral-500 rounded-full'></div>
+                <div className='h-9 w-9 bg-input flex justify-center items-center rounded-full'>{user?.name[0]?.toUpperCase() || "U"}</div>
             </div>
         </nav>
     )

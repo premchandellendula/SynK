@@ -1,6 +1,7 @@
 import React from 'react'
 import { Button } from '../ui/button'
 import { Brain, ChartNoAxesColumn, MessageSquare, Trophy } from 'lucide-react'
+import Link from 'next/link'
 
 const Hero = () => {
     return (
@@ -19,19 +20,23 @@ const Hero = () => {
                 </p>
             </div>
             <div className='flex flex-col md:flex-row items-center justify-center gap-3 mt-8 ml-2'>
-                <Button
-                    size={"lg"}
-                    className='px-12 py-6 text-lg transition-all duration-500 ease-spring w-full md:w-auto'
-                >
-                    Start Free trial
-                </Button>
-                <Button
-                    size={"lg"}
-                    className='px-12 py-6 text-lg transition-all duration-500 ease-spring w-full md:w-auto'
-                    variant={"outline"}
-                >
-                    Get Started
-                </Button>
+                <Link href={"/signin"}>
+                    <Button
+                        size={"lg"}
+                        className='px-12 py-6 text-lg transition-all duration-500 ease-spring w-full md:w-auto'
+                        >
+                        Start Free trial
+                    </Button>
+                </Link>
+                <Link href={"/signup"}>
+                    <Button
+                        size={"lg"}
+                        className='px-12 py-6 text-lg transition-all duration-500 ease-spring w-full md:w-auto'
+                        variant={"outline"}
+                        >
+                        Get Started
+                    </Button>
+                </Link>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto animate-fade-in-up mt-10" style={{animationDelay: '0.6s'}}>

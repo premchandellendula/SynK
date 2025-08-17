@@ -92,7 +92,7 @@ const UserLeaderboard = ({leaderboard}: {leaderboard: IQuizLeaderboardDataUser})
                             </Button>
                         </div>
                         <div className="flex-1 overflow-y-auto p-2">
-                            <Leaderboard />
+                            <Leaderboard setStep={() => {}} />
                         </div>
                     </div>
                 </div>

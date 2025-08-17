@@ -70,6 +70,7 @@ const Leaderboard = ({setStep}: {setStep: (step: IQuizBuilderStages) => void}) =
     const [currentPage, setCurrentPage] = useState(1);
     const setActiveQuiz = useQuizStore((s) => s.setActiveQuiz);
     const setInteraction = useInteractionStore((s) => s.setInteraction);
+    const [loadingForEndingQuiz, setLoadingForEndingQuiz] = useState(false)
 
     useJoinRoomSocket({ socket, roomId, userId: user?.id })
     const fetchLeaderboard = async (quizId: string, roomId: string, page = 1, limit = 10) => {
@@ -117,6 +118,7 @@ const Leaderboard = ({setStep}: {setStep: (step: IQuizBuilderStages) => void}) =
     }
 
     const handleEndQuiz = () => {
+        setLoadingForEndingQuiz(true);
         try {
             if(!activeQuiz) return;
             
@@ -130,6 +132,8 @@ const Leaderboard = ({setStep}: {setStep: (step: IQuizBuilderStages) => void}) =
             setInteraction("qna")
         }catch(err) {
             console.error('Failed to set the current question:', err);
+        }finally{
+            setLoadingForEndingQuiz(false);
         }
     }
 
@@ -146,7 +150,11 @@ const Leaderboard = ({setStep}: {setStep: (step: IQuizBuilderStages) => void}) =
                     className='px-4 py-2 rounded-sm disabled:opacity-50'
                     onClick={handleEndQuiz}
                 >
-                    End Quiz
+                    {loadingForEndingQuiz ? (
+                        <Spinner />
+                    ) : (
+                        "End Quiz"
+                    )}
                 </Button>
                 <div className='flex items-center justify-center gap-2 px-2'>
                     <Button

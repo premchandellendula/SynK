@@ -207,14 +207,14 @@ const PollCard = () => {
 
                     </div>
                     <div className="absolute bottom-0 left-0 right-0 h-12 flex items-center px-4 gap-2">
-                        <Button variant={"default"} onClick={handleLaunchNewPoll} disabled={loadingForLaunch} className='w-24'>
+                        <Button variant={"default"} onClick={handleLaunchNewPoll} disabled={loadingForLaunch} className='w-26'>
                             {loadingForLaunch ? (
                                 <Spinner />
                             ) : (
                                 "Launch Poll"
                             )}
                         </Button>
-                        <Button variant={"ghost"} onClick={handleAddNewPoll} disabled={loadingForAdd} className='w-24'>
+                        <Button variant={"ghost"} onClick={handleAddNewPoll} disabled={loadingForAdd} className='w-22'>
                             {loadingForAdd ? (
                                 <Spinner />
                             ) : (
@@ -230,6 +230,7 @@ const PollCard = () => {
 
 function ActivePollCard(){
     const { activePoll, updateOptionVotes, setActivePoll } = usePollStore();
+    const [loading, setLoading] = useState(false);
     const socket = useSocket();
     if(!activePoll) return;
     // console.log(activePoll.options);
@@ -269,6 +270,7 @@ function ActivePollCard(){
     }, [socket, updateOptionVotes, activePoll?.id])
 
     const handleEndPoll = () => {
+        setLoading(true);
         try {
             socket.emit("end-poll", {
                 pollId: activePoll.id,
@@ -279,6 +281,8 @@ function ActivePollCard(){
             setActivePoll(null)
         } catch(err) {
             console.error('Failed to end a poll:', err);
+        }finally{
+            setLoading(false);
         }
     }
 
@@ -317,7 +321,11 @@ function ActivePollCard(){
                     className='px-4 py-2 rounded-sm disabled:opacity-50'
                     onClick={handleEndPoll}
                 >
-                    End Poll
+                    {loading ? (
+                        <Spinner />
+                    ) : (
+                        "End Poll"
+                    )}
                 </Button>
             </div>
         </>
