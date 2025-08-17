@@ -12,6 +12,7 @@ import axios from 'axios'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import useRoomStore from '@/store/roomStore'
+import Spinner from '../loaders/Spinner'
 
 const SpaceOptions = () => {
     const [isCreateRoomModalOpen, setIsCreateRoomModalOpen] = useState(false);
@@ -19,8 +20,11 @@ const SpaceOptions = () => {
     const [roomName, setRoomName] = useState("");
     const [roomCode, setRoomCode] = useState("");
     const router = useRouter();
+    const [creationLoading, setCreationLoading] = useState(false)
+    const [joinLoading, setJoinLoading] = useState(false)
 
     const handleRoomCreation = async () => {
+        setCreationLoading(true)
         try {
             const response = await axios.post(`/api/room/`, {
                 name: roomName
@@ -46,10 +50,13 @@ const SpaceOptions = () => {
             }
             console.log("Error signing up: ", err)
             toast.error(errorMessage)
+        }finally{
+            setCreationLoading(false)
         }
     }
 
     const handleJoinRoom = async () => {
+        setJoinLoading(true)
         try {
             const response = await axios.post(`/api/room/join`, {
                 code: roomCode
@@ -81,6 +88,8 @@ const SpaceOptions = () => {
             }
             console.log("Error signing up: ", err)
             toast.error(errorMessage)
+        }finally{
+            setJoinLoading(false)
         }
     }
     return (
@@ -169,7 +178,13 @@ const SpaceOptions = () => {
                         <Input onChange={(e) => setRoomName(e.target.value)} placeholder='space name' />
                     </div>
                     <div className='flex justify-end'>
-                        <Button onClick={handleRoomCreation} size={'lg'}>Create Space</Button>
+                        <Button onClick={handleRoomCreation} size={'lg'} className='flex justify-center items-center w-32'>
+                            {creationLoading ? (
+                                <Spinner />
+                            ) : (
+                                "Create Space"
+                            )}
+                        </Button>
                     </div>
                 </div>
             </div>}
@@ -182,7 +197,13 @@ const SpaceOptions = () => {
                     </div>
                     <div className='flex gap-2 mt-6'>
                         <Input onChange={(e) => setRoomCode(e.target.value)} placeholder='45REM77PC' className='h-10' />
-                        <Button onClick={handleJoinRoom} size={'lg'}>Join</Button>
+                        <Button onClick={handleJoinRoom} size={'lg'} className='flex justify-center items-center w-18'>
+                            {joinLoading ? (
+                                <Spinner />
+                            ) : (
+                                "Join"
+                            )}
+                        </Button>
                     </div>
                 </div>
             </div>}

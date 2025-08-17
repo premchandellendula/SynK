@@ -10,6 +10,7 @@ import { useSocket } from '@/hooks/useSocket';
 import { useJoinRoomSocket } from '@/hooks/useJoinRoomSocket';
 import { useUser } from '@/hooks/useUser';
 import useQuizStore from '@/store/quizStore';
+import Spinner from '../loaders/Spinner';
 
 const QuizForm = ({quizName, setStep} : {quizName: string, setStep: (step: IQuizBuilderStages) => void}) => {
     const [questions, setQuestions] = useState<IQuizQuestion[]>([{
@@ -21,6 +22,7 @@ const QuizForm = ({quizName, setStep} : {quizName: string, setStep: (step: IQuiz
     const socket = useSocket();
     const { user } = useUser();
     const { addQuiz, setActiveQuiz } = useQuizStore();
+    const [loading, setLoading] = useState(false);
 
     useJoinRoomSocket({socket, roomId, userId: user?.id});
 
@@ -61,6 +63,7 @@ const QuizForm = ({quizName, setStep} : {quizName: string, setStep: (step: IQuiz
             toast.warning("Please add atleast a full question");
             return;
         }
+        setLoading(true);
         try {
             const response = await axios.post(`/api/room/${roomId}/quizzes`, {
                 quizName: quizName,
@@ -85,6 +88,8 @@ const QuizForm = ({quizName, setStep} : {quizName: string, setStep: (step: IQuiz
             setStep("waiting")
         }catch(err) {
             console.error('Failed to add a new quiz:', err);
+        }finally{
+            setLoading(false);
         }
     }
     return (
@@ -114,8 +119,12 @@ const QuizForm = ({quizName, setStep} : {quizName: string, setStep: (step: IQuiz
                 </div>
             </div>
             <div className="absolute bottom-0 left-0 right-0 h-12 bg-input/20 flex items-center px-2">
-                <Button onClick={handleAddNLaunchQuiz}>
-                    Start Quiz
+                <Button onClick={handleAddNLaunchQuiz} className='w-24'>
+                    {loading ? (
+                        <Spinner />
+                    ) : (
+                        "Start Quiz"
+                    )}
                 </Button>
             </div>
         </div>
