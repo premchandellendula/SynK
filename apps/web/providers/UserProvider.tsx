@@ -1,6 +1,7 @@
 "use client"
 import { User } from "@/types/types";
 import axios from "axios";
+import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { createContext, useEffect, useState } from "react";
 
@@ -18,6 +19,7 @@ interface UserProviderProps {
 
 export const UserProvider = ({children}: UserProviderProps) => {
     const [user, setUser] = useState<User | null>(null);
+    const { data: session, status } = useSession();
     const router = useRouter()
 
     const login = async () => {
@@ -41,20 +43,33 @@ export const UserProvider = ({children}: UserProviderProps) => {
     }
 
     const logout = async () => {
-        try {
-            await axios.post(`/api/auth/logout`, {}, {
-                withCredentials: true
-            })
+        if(status === "authenticated"){
+            await signOut({ callbackUrl: "/"})
             setUser(null)
-            router.push('/')
-        } catch (err) {
-            console.error("Failed to logout", err)
-        }
+        }else{
+            try {
+                await axios.post(`/api/auth/logout`, {}, {
+                    withCredentials: true
+                })
+                setUser(null)
+                router.push('/')
+            } catch (err) {
+                console.error("Failed to logout", err)
+            }
+        }   
     }
 
     useEffect(() => {
-        login()
-    }, [])
+        if(status === "authenticated" && session.user){
+            setUser({
+                id: session.user.id,
+                name: session.user.name ?? "",
+                email: session.user.email ?? ""
+            })
+        }else if(status === "unauthenticated"){
+            login()
+        }
+    }, [session, status])
 
     return (
         <UserContext.Provider value={{ user, login, logout }}>
