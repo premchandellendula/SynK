@@ -11,8 +11,10 @@ import axios from 'axios';
 import { toast } from "sonner";
 import Spinner from "@/components/loaders/Spinner";
 import { useUser } from "@/hooks/useUser";
+import { FcGoogle } from "react-icons/fc";
+import { signIn } from "next-auth/react";
 
-export default function Signup(){
+export default function Signup() {
     const [formData, setFormData] = useState({
         name: "",
         email: "",
@@ -39,10 +41,10 @@ export default function Signup(){
             [name]: value
         }));
 
-        if(name === "confirmPassword"){
-            if(value !== formData.password){
+        if (name === "confirmPassword") {
+            if (value !== formData.password) {
                 setConfirmPasswordError("Passwords do not match")
-            }else{
+            } else {
                 setConfirmPasswordError("")
             }
         }
@@ -56,7 +58,7 @@ export default function Signup(){
         }
     }
 
-    const handleSubmit = async (e: ChangeEvent<HTMLFormElement>) =>  {
+    const handleSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         setLoading(true);
@@ -67,20 +69,20 @@ export default function Signup(){
             })
 
             toast.success("Signup successful")
-            if(formData.email && formData.password){
+            if (formData.email && formData.password) {
                 router.push(`/spaces`)
             }
             login()
-        }catch(err) {
+        } catch (err) {
             let errorMessage = "Something went wrong";
 
-            if(axios.isAxiosError(err)){
+            if (axios.isAxiosError(err)) {
                 errorMessage = err.response?.data.message || err.message
             }
             console.log("Error signing up: ", err)
             setError(errorMessage);
             setLoading(false)
-        }finally{
+        } finally {
             setLoading(false)
         }
     }
@@ -107,6 +109,15 @@ export default function Signup(){
                             ) : (
                                 "Signup"
                             )}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="flex items-center justify-center gap-2"
+                            onClick={async () => await signIn("google", { callbackUrl: "/spaces" })}
+                        >
+                            <FcGoogle size={20} />
+                            Continue with Google
                         </Button>
                         <BottomWarning label="Already have an account?" buttonText="Signin" to="/signin" />
                     </div>

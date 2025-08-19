@@ -11,6 +11,8 @@ import axios from "axios"
 import { useRouter } from "next/navigation"
 import { ChangeEvent, useState } from "react"
 import { toast } from "sonner"
+import { signIn } from "next-auth/react"
+import { FcGoogle } from 'react-icons/fc'
 
 const page = () => {
     const [formData, setFormData] = useState({
@@ -78,6 +80,15 @@ const page = () => {
                             ) : (
                                 "Signin"
                             )}
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="flex items-center justify-center gap-2"
+                            onClick={async () => await signIn("google", { callbackUrl: "/spaces" })}
+                        >
+                            <FcGoogle size={20} />
+                            Continue with Google
                         </Button>
                         <BottomWarning label="Doesn't have an account?" buttonText="Signup" to="/signup" />
                     </div>
