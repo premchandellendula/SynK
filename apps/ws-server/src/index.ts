@@ -4,6 +4,7 @@ import express from 'express';
 import { createServer } from "http";
 import cors from 'cors'
 import { initializeSocket } from './socket';
+import { startRoomStatusCron } from './cron/markEndedRooms';
 
 const app = express();
 const server = createServer(app);
@@ -19,6 +20,8 @@ app.get("/", (req, res) => {
 });
 
 initializeSocket(server, allowedOrigins);
+
+startRoomStatusCron();
 
 const port = process.env.PORT || 8080;
 server.listen(port, () => {
