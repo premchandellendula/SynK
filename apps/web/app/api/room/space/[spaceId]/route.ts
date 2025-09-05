@@ -68,7 +68,7 @@ export async function GET(req: NextRequest, { params } : { params: Promise<{spac
             room
         }, {status: 200})
     }catch(err) {
-        console.log("Error deleting the room: ", err)
+        console.log("Error fetching the room: ", err)
         return NextResponse.json({ message: "Internal server error" }, { status: 500 })
     }
 }

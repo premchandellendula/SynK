@@ -1,4 +1,5 @@
 import { QuizQuestion } from "@/types/types";
+import { RoomStatus } from "@repo/db";
 import { clsx, type ClassValue } from "clsx"
 import { toast } from "sonner";
 import { twMerge } from "tailwind-merge"
@@ -60,5 +61,20 @@ export const getQuestionState = (question: QuizQuestion) => {
     isExpired: remaining <= 0,
     remainingSeconds: Math.max(remaining, 0)
   }
+}
 
+export function roomStatus(status: RoomStatus){
+  switch(status){
+    case "LAUNCHED":
+      return "Active"
+      break
+    case "ENDED":
+      return "Stopped"
+      break
+    case "DELETED":
+      return "Ended"
+      break
+    default:
+      return "Active"
+  }
 }

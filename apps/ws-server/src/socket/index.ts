@@ -9,6 +9,8 @@ import changeQuestionStatusHandler from './handlers/changeQuestionStatusHandler'
 import quizHandler from './handlers/quizHandler';
 import * as cookie from 'cookie'
 import pollHandler from './handlers/pollHandler';
+import { removeUserBySocketId } from './store/roomStore';
+import { removeUserFromRoomDB } from './utils/db/roomMember';
 
 export async function initializeSocket(server: Server, allowedOrigins: string[]){
     const io = new SocketIOServer(server, {
@@ -50,8 +52,15 @@ export async function initializeSocket(server: Server, allowedOrigins: string[])
         registerPollVoteHandler(io, socket);
         quizHandler(io, socket);
 
-        socket.on('disconnect', () => {
-            console.log(`Client disconnected: ${socket.id}`);
+        socket.on('disconnect', async () => {
+            const removed = removeUserBySocketId(socket.id);
+            if (removed) {
+                const { userId, roomId } = removed;
+                await removeUserFromRoomDB(userId, roomId);
+                console.log(`User ${removed.userId} disconnected from room ${removed.roomId}`);
+            } else {
+                console.log(`Client disconnected: ${socket.id}`);
+            }
         });
     });
 

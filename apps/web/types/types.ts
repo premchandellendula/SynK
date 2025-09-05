@@ -184,7 +184,6 @@ export type RoomStore = {
     code: string
 }
 
-
 // Normal Types
 
 export interface IQuizQuestion {
@@ -199,4 +198,21 @@ export interface QuizLeaderboardProps {
     quizId: string,
     quizName: string,
     leaderboard: QuizLeaderboard[]
+}
+
+export type RoomType = {
+    id: string,
+    name: string,
+    code: string,
+    startDate: string,
+    endDate: string,
+    createdBy: {
+        id: string,
+        name: string
+    },
+    users: {
+        id: string,
+        name: string
+    }[],
+    status: RoomStatus
 }

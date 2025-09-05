@@ -12,7 +12,7 @@ const Navbar = () => {
     const [isFlyoutOpen, setIsFlyoutOpen] = useState(false)
     
     return (
-        <nav className='w-full flex justify-between items-center border-b border-sidebar-border px-6 relative'>
+        <nav className='w-full flex-shrink-0 bg-background flex justify-between items-center border-b border-sidebar-border px-6'>
             <div className='flex items-center'>
                 <Logo size={16} />
                 <h2 className='text-3xl font-semibold text-primary mb-1'>Synk</h2>
