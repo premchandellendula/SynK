@@ -128,3 +128,30 @@ export async function GET(req: NextRequest){
         return NextResponse.json({ message: "Internal server error" }, { status: 500 })
     }
 }
+
+export async function DELETE(req: NextRequest){
+    const auth = await authMiddleware(req);
+    if(!("authorized" in auth)) return auth;
+
+    try {
+        const result = await prisma.room.deleteMany({
+            where: {
+                creatorId: auth.userId
+            }
+        });
+
+        if (result.count === 0) {
+            return NextResponse.json({
+                message: "No rooms found to delete."
+            }, { status: 404 });
+        }
+
+        return NextResponse.json({
+            message: "Rooms deleted successfully",
+            deletedCount: result.count
+        });
+    }catch(err) {
+        console.log("Error deleting the rooms: ", err)
+        return NextResponse.json({ message: "Internal server error" }, { status: 500 })
+    }
+}
