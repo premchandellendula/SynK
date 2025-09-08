@@ -248,7 +248,7 @@ function SpacesList({
         setLoadingForDelete(true)
 
         try {
-            const response = await axios.delete(`/api/room/${roomId}`, {
+            await axios.delete(`/api/room/${roomId}`, {
                 withCredentials: true
             })
         } catch (err) {
@@ -264,8 +264,24 @@ function SpacesList({
         }
     }
 
-    const handleDeleteAllRoom = () => {
-        
+    const handleDeleteAllRoom = async () => {
+        setLoadingForDeleteAll(true)
+
+        try {
+            await axios.delete(`/api/room`, {
+                withCredentials: true
+            })
+        } catch (err) {
+            let errorMessage = "Something went wrong"
+
+            if(axios.isAxiosError(err)){
+                errorMessage = err.response?.data?.message || err.message;
+            }
+            console.log("Error signing up: ", err)
+            toast.error(errorMessage)
+        }finally{
+            setLoadingForDeleteAll(false)
+        }
     }
     return (
         <div className='flex flex-col h-full gap-6 p-4'>
@@ -433,7 +449,9 @@ function SpacesList({
                                                     {isOwner && (
                                                         <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteRoom(room.id)}>
                                                             {loadingforDelete ? (
-                                                                <Spinner />
+                                                                <div className='w-full'>
+                                                                    <Spinner />
+                                                                </div>
                                                             ) : (
                                                                 <>
                                                                     <Trash2 className="h-4 w-4 mr-2 hover:text-destructive" />
