@@ -52,16 +52,16 @@ export async function initializeSocket(server: Server, allowedOrigins: string[])
         registerPollVoteHandler(io, socket);
         quizHandler(io, socket);
 
-        socket.on('disconnect', async () => {
-            const removed = removeUserBySocketId(socket.id);
-            if (removed) {
-                const { userId, roomId } = removed;
-                await removeUserFromRoomDB(userId, roomId);
-                console.log(`User ${removed.userId} disconnected from room ${removed.roomId}`);
-            } else {
-                console.log(`Client disconnected: ${socket.id}`);
-            }
-        });
+        // socket.on('disconnect', async () => {
+        //     const removed = removeUserBySocketId(socket.id);
+        //     if (removed) {
+        //         const { userId, roomId } = removed;
+        //         await removeUserFromRoomDB(userId, roomId);
+        //         console.log(`User ${removed.userId} disconnected from room ${removed.roomId}`);
+        //     } else {
+        //         console.log(`Client disconnected: ${socket.id}`);
+        //     }
+        // });
     });
 
     return io;

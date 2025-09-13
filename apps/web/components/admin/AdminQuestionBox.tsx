@@ -16,7 +16,7 @@ const AdminQuestionBox = () => {
             <div className='flex justify-between items-center h-10'>
                 <div className='flex items-center gap-1'>
                     <MessageSquareMore size={20} className='mt-1 text-green-500' />
-                    <span className='font-normal text-foreground text-lg'>Audience Q&A</span>
+                    <span className='font-normal text-foreground text-lg flex gap-1'><span className='hidden md:block'>Audience</span> Q&A</span>
                 </div>
                 <div className='flex items-center gap-2'>
                     <MenuItemTab 

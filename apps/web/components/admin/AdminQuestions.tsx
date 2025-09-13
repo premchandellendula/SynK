@@ -1,11 +1,10 @@
 "use client";
-import QuestionCard from '@/components/cards/QuestionCard'
 import { useSocket } from '@/hooks/useSocket';
 import { useUser } from '@/hooks/useUser';
 import useQuestionStore from '@/store/questionStore'
 import useRoomStore from '@/store/roomStore';
 import axios from 'axios';
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { AnimatePresence, motion } from 'motion/react';
 import QuestionOnAdminPanel from '../cards/QuestionOnAdminPanel';
 
@@ -17,25 +16,26 @@ const AdminQuestions = () => {
     const roomId = useRoomStore((s) => s.room?.roomId);
     const room = useRoomStore((s) => s.room);
     const { user } = useUser();
+    const hasJoined = useRef(false);
 
     useEffect(() => {
-        if (!socket || !roomId || !user?.id) return;
+        if (!socket || !roomId || !user?.id || hasJoined.current) return;
 
         const handleConnect = () => {
-            // console.log("Socket connected, emitting join-room:", { roomId, userId: user.id });
             socket.emit("join-room", { roomId, userId: user.id });
+            hasJoined.current = true;
         };
-
-        socket.on("connect", handleConnect);
 
         if (socket.connected) {
             handleConnect();
+        } else {
+            socket.on("connect", handleConnect);
         }
 
         return () => {
             socket.off("connect", handleConnect);
         };
-    }, [socket, socket.connected, roomId, user?.id]);
+    }, [socket, roomId, user?.id]);
 
 
     useEffect(() => {

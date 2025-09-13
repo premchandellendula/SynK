@@ -62,7 +62,7 @@ const QuestionInput = () => {
             <Input 
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                className='h-14 text-4xl border-none shadow-none focus:ring-0 focus-visible:ring-0 focus:outline-none' placeholder='Type your question' 
+                className='h-12 md:h-14 text-base md:text-xl border-none shadow-none focus:ring-0 focus-visible:ring-0 focus:outline-none' placeholder='Type your question' 
             />
             <div className='flex justify-between mt-3'>
                 <div className='flex items-center gap-1'>

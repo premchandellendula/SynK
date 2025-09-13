@@ -19,6 +19,7 @@ import Dates from '../utils/Dates'
 import { RoomType } from '@/types/types'
 import { Badge } from '../ui/badge'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip'
 
 const statusConfig = {
     LAUNCHED: { label: "Live", color: "bg-green-500", textColor: "text-green-700", bgColor: "bg-green-50" },
@@ -205,7 +206,7 @@ function SpacesList({
         setSelectAll(!selectAll)
     }
 
-    const handleJoinRoom = async (roomCode: string) => {
+    const handleJoinRoom = async (roomCode: string, createdBy: {id: string, name: string}) => {
         try {
             const response = await axios.post(`/api/room/join`, {
                 code: roomCode
@@ -225,7 +226,11 @@ function SpacesList({
             // console.log(room)
 
             if(room){
-                router.push(`/space/${room.spaceId}/live`)
+                if(createdBy.id === user?.id){
+                    router.push(`/space/${room.spaceId}/host`)
+                }else{
+                    router.push(`/space/${room.spaceId}/live`)
+                }
             }
             
             toast.success("Joined room successfully")
@@ -285,8 +290,8 @@ function SpacesList({
     }
     return (
         <div className='flex flex-col h-full gap-6 p-4'>
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                <div className="flex flex-wrap gap-2">
+            <div className="flex gap-4 items-start sm:items-center justify-between">
+                <div className="flex justify-between gap-2">
                     <Button
                         variant={selectedFilter === "all" ? "default" : "outline"}
                         onClick={() => setSelectedFilter("all")}
@@ -294,35 +299,72 @@ function SpacesList({
                     >
                         All
                     </Button>
-                    <Button
-                        variant={selectedFilter === "active" ? "default" : "outline"}
-                        onClick={() => setSelectedFilter("active")}
-                        size="sm"
-                    >
-                        <Video className="h-4 w-4 mr-2" />
-                        Active & Upcoming
-                    </Button>
-                    <Button
-                        variant={selectedFilter === "past" ? "default" : "outline"}
-                        onClick={() => setSelectedFilter("past")}
-                        size="sm"
-                    >
-                        <Archive className="h-4 w-4 mr-2" />
-                        Completed
-                    </Button>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant={selectedFilter === "active" ? "default" : "outline"}
+                                    onClick={() => setSelectedFilter("active")}
+                                    size="sm"
+                                >
+                                    <Video className="h-4 w-4 mr-0 md:mr-2" />
+                                    <span className="hidden md:inline">Active & Upcoming</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                                Active & Upcoming
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant={selectedFilter === "past" ? "default" : "outline"}
+                                    onClick={() => setSelectedFilter("past")}
+                                    size="sm"
+                                >
+                                    <Archive className="h-4 w-4 md:mr-2" />
+                                    <span className="hidden md:inline">Completed</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                                Completed
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                 </div>
 
                 <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => {
-                        setIsJoinRoomModalOpen(!isJoinRoomModalOpen)
-                    }}>
-                        <Users className="h-4 w-4 mr-2" />
-                        Join Space
-                    </Button>
-                    <Button size="sm" onClick={() => setIsCreateRoomModalOpen(!isCreateRoomModalOpen)}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create New Space
-                    </Button>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button size="sm" variant="outline" onClick={() => {
+                                    setIsJoinRoomModalOpen(!isJoinRoomModalOpen)
+                                }}>
+                                    <Users className="h-4 w-4 md:mr-2" />
+                                    <span className="hidden md:inline">Join Space</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                                Join Space
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button size="sm" onClick={() => setIsCreateRoomModalOpen(!isCreateRoomModalOpen)}>
+                                    <Plus className="h-4 w-4 md:mr-2" />
+                                    <span className="hidden md:inline">Create New Space</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                                Create New Space
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
                 </div>
             </div>
 
@@ -338,18 +380,18 @@ function SpacesList({
                     </div>
                 </div>
                 <div className=''>
-                    <div className="grid grid-cols-12 gap-4 p-4 border-b border-border bg-muted/50 text-sm font-medium text-muted-foreground">
+                    <div className="grid grid-cols-7 md:grid-cols-12 gap-4 p-4 border-b border-border bg-muted/50 text-sm font-medium text-muted-foreground">
                         <div className="col-span-1 flex items-center">
                             <Input type='checkbox' className='w-5 h-5 accent-green-500' checked={selectAll} onChange={handleSelectAll} />
                         </div>
                         <div className="col-span-5">Space Details</div>
-                        <div className="col-span-3">Status</div>
-                        <div className="col-span-2">Participants</div>
-                        <div className="col-span-1">Actions</div>
+                        <div className="col-span-3 hidden md:block">Status</div>
+                        <div className="col-span-2 hidden md:block">Participants</div>
+                        <div className="col-span-1 hidden sm:block">Actions</div>
                     </div>
                     <div className="divide-y divide-border">
                         {rooms.map((room) => (
-                            <div key={room.id} className="grid grid-cols-12 gap-4 p-4 hover:bg-muted/30 transition-colors cursor-pointer">
+                            <div key={room.id} className="grid grid-cols-7 md:grid-cols-12 gap-4 p-4 hover:bg-muted/30 transition-colors cursor-pointer">
                                 {selectedRooms.length > 0 && (
                                     <div className="fixed top-37 left-1/2 transform -translate-x-1/2 z-50">
                                         <div className="bg-popover border border-border shadow-md rounded-md px-6 py-4 flex items-center gap-4">
@@ -396,7 +438,7 @@ function SpacesList({
                                     </div>
                                     <div className="text-sm text-muted-foreground"><Dates startDate={room.startDate} endDate={room.endDate} /></div>
                                 </div>
-                                <div className="col-span-3 flex items-center">
+                                <div className="col-span-3 items-center hidden md:flex">
                                     <Badge
                                         variant="secondary"
                                         className={`${statusConfig[room.status as keyof typeof statusConfig].bgColor} ${statusConfig[room.status as keyof typeof statusConfig].textColor} border-0`}
@@ -407,7 +449,7 @@ function SpacesList({
                                         {statusConfig[room.status as keyof typeof statusConfig].label}
                                     </Badge>
                                 </div>
-                                <div className="col-span-2 flex items-center text-sm text-muted-foreground">
+                                <div className="col-span-2 items-center text-sm text-muted-foreground hidden md:flex">
                                     <Users className="h-4 w-4 mr-1" />
                                     {room.users.length}
                                 </div>
@@ -426,14 +468,14 @@ function SpacesList({
                                             return (
                                                 <DropdownMenuContent align='end'>
                                                     {isOwner && isRoomActive && (
-                                                        <DropdownMenuItem onClick={() => handleJoinRoom(room.code)}>
+                                                        <DropdownMenuItem onClick={() => handleJoinRoom(room.code, room.createdBy)}>
                                                             <Users className='h-4 w-4 mr-2' />
                                                             Join
                                                         </DropdownMenuItem>
                                                     )}
 
                                                     {!isOwner && isRoomActive && (
-                                                        <DropdownMenuItem onClick={() => handleJoinRoom(room.code)}>
+                                                        <DropdownMenuItem onClick={() => handleJoinRoom(room.code, room.createdBy)}>
                                                             <Users className="h-4 w-4 mr-2" />
                                                             Join
                                                         </DropdownMenuItem>
@@ -484,7 +526,7 @@ function JoinRoomModal({ setIsJoinRoomModalOpen }: { setIsJoinRoomModalOpen: (va
         setJoinLoading(true)
         try {
             const response = await axios.post(`/api/room/join`, {
-                code: roomCode
+                code: roomCode.trim()
             }, {withCredentials: true})
             
             const room = response.data.roomData
@@ -562,9 +604,14 @@ function CreateRoomModal({ setIsCreateRoomModalOpen }: { setIsCreateRoomModalOpe
             });
 
             socket.emit("join-room", { roomId: room.id , userId: user?.id });
+            
             if(room){
                 router.push(`/space/${room.spaceId}/host`)
             }
+
+            await axios.post(`/api/room/join`, {
+                code: room.code
+            }, { withCredentials: true });
             
             toast.success("Room created successfully")
         } catch (err) {

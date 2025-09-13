@@ -55,7 +55,7 @@ const QuizQuestionCard = ({onRemove, idx, data, onChange}: {onRemove: (i: number
                     </TooltipContent>
                 </Tooltip>
             </div>
-            <Input placeholder='What would you like to ask?' className='py-8 text-3xl' onChange={(e) => setQuestionText(e.target.value)}/>
+            <Input placeholder='What would you like to ask?' className='py-8 h-12 md:h-14 text-base md:text-xl' onChange={(e) => setQuestionText(e.target.value)}/>
             {options.map((option, i) => (
                 <div
                     key={i}
@@ -68,7 +68,7 @@ const QuizQuestionCard = ({onRemove, idx, data, onChange}: {onRemove: (i: number
                         value={option}
                         onChange={e => handleInputChange(i, e.target.value)}
                         placeholder={`Option ${i + 1}`}
-                        className={`py-3 text-2xl flex-1 ${correctOptionIndex === i ? 'border-green-500' : ''}`}
+                        className={`py-3 text-base md:text-xl flex-1 ${correctOptionIndex === i ? 'border-green-500' : ''}`}
                     />
                     <Button 
                         variant='ghost'
