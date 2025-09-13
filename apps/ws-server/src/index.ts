@@ -9,7 +9,7 @@ import { startRoomStatusCron } from './cron/markEndedRooms';
 const app = express();
 const server = createServer(app);
 
-const allowedOrigins = ["http://localhost:3000"]
+const allowedOrigins = ["http://localhost:3000", "https://synk-rem.vercel.app"]
 app.use(cors({
     origin: allowedOrigins,
     credentials: true
