@@ -1,16 +1,23 @@
-import { getSocket } from "@/lib/socket";
-import { useEffect, useState } from "react";
-import { Socket } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
+import { useRef } from "react";
+
+let socket: Socket | null = null;
 
 export const useSocket = (): Socket => {
-    const [socket, setSocket] = useState(() => getSocket());
+    const socketRef = useRef<Socket | null>(null);
 
-    useEffect(() => {
-        if (!socket.connected) socket.connect();
-        return () => {
-            socket.disconnect(); 
-        };
-    }, [socket]);
+    if (!socket) {
+        socket = io(process.env.NEXT_PUBLIC_SOCKET_URL!, {
+            withCredentials: true,
+            autoConnect: false
+        });
+    }
 
-    return socket;
+    if (!socket.connected) {
+        socket.connect();
+    }
+
+    socketRef.current = socket;
+
+    return socketRef.current;
 }

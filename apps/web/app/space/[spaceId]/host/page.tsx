@@ -4,6 +4,7 @@ import AdminQuestionBox from "@/components/admin/AdminQuestionBox";
 import AdminQuizBox from "@/components/admin/AdminQuizBox";
 import InteractionBox from "@/components/admin/InteractionBox";
 import HostNavbar from "@/components/navbar/HostNavbar";
+import useLeaveRoomOnRouteChange from "@/hooks/useLeaveRoomOnRouteChange";
 import useInteractionStore from "@/store/interactionStore";
 import useQuizStore from "@/store/quizStore";
 import useRoomStore from "@/store/roomStore";
@@ -18,6 +19,7 @@ export default function Host(){
     const { interaction, setInteraction } = useInteractionStore();
     const setActiveQuiz = useQuizStore(s => s.setActiveQuiz);
     const roomId =  useRoomStore(s => s.room?.roomId);
+    useLeaveRoomOnRouteChange();
     // console.log(spaceId)
     useEffect(() => {
         async function fetchRoomDetails(){
@@ -63,10 +65,10 @@ export default function Host(){
         <div className="w-screen h-screen overflow-hidden">
             <HostNavbar name={roomDetails?.name} startDate={roomDetails?.startDate} endDate={roomDetails?.endDate} code={roomDetails?.code} />
             <div className="h-full pt-15 flex divide-x divide-foreground/10">
-                <div className="w-[30%] relative p-2">
+                <div className="md:w-[30%] relative">
                     <InteractionBox setInteraction={setInteraction} />
                 </div>
-                <div className="flex-1 relative p-2">
+                <div className="flex-1 relative p-2 md:mt-0 mt-6">
                     {interaction === "qna" && <AdminQuestionBox />}
                     {interaction === "poll" && <AdminPollsBox />}
                     {interaction === "quiz" && <AdminQuizBox />}

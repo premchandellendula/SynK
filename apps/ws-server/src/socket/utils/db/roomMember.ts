@@ -1,4 +1,4 @@
-import { prisma } from "@repo/db";
+import { prisma, RoomMemberStatus } from "@repo/db";
 
 export async function removeUserFromRoomDB(userId: string, roomId: string) {
     try {
@@ -17,20 +17,19 @@ export async function removeUserFromRoomDB(userId: string, roomId: string) {
             return;
         }
 
-        const isInRoom = room.users.some(user => user.id === userId);
-        if (!isInRoom) {
-            console.log(`User ${userId} already removed from room ${roomId}`);
-            return;
-        }
-        await prisma.room.update({
-            where: { id: roomId },
-            data: {
-                users: {
-                    disconnect: { id: userId}
+        const updated = await prisma.roomMember.update({
+            where: {
+                roomId_userId: {
+                    roomId,
+                    userId
                 }
+            },
+            data: {
+                status: RoomMemberStatus.LEFT
             }
-        })
-        console.log(`Removed user ${userId} from room ${roomId} in DB`);
+        });
+
+        console.log(`Set status 'left' for user ${userId} in room ${roomId}`);
     } catch (error) {
         console.error(`Error removing user from DB:`, error);
     }

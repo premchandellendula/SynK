@@ -170,7 +170,7 @@ const PollCard = () => {
                                 </TooltipContent>
                             </Tooltip>
                         </div>
-                        <Input placeholder='What would you like to ask?' value={pollQuestion} className='py-8 text-3xl' onChange={(e) => setPollQuestion(e.target.value)}/>
+                        <Input placeholder='What would you like to ask?' value={pollQuestion} className='py-8 h-12 md:h-14 text-base md:text-xl' onChange={(e) => setPollQuestion(e.target.value)}/>
                         {options.map((option, i) => (
                             <div
                                 key={i}
@@ -180,7 +180,7 @@ const PollCard = () => {
                                     value={option}
                                     onChange={e => handleInputChange(i, e.target.value)}
                                     placeholder={`Option ${i + 1}`}
-                                    className='py-3 text-2xl flex-1'
+                                    className='py-3 text-base md:text-xl flex-1'
                                 />
                                 <Button 
                                     variant='ghost'

@@ -5,6 +5,7 @@ import Tabs from "@/components/live/Tabs";
 import UserNavbar from "@/components/navbar/UserNavbar";
 import QuizQuestionCardUser from "@/components/quizTaker/QuizQuestionCardUser";
 import { useJoinRoomSocket } from "@/hooks/useJoinRoomSocket";
+import useLeaveRoomOnRouteChange from "@/hooks/useLeaveRoomOnRouteChange";
 import { useSocket } from "@/hooks/useSocket";
 import { useUser } from "@/hooks/useUser";
 import usePollStore from "@/store/pollStore";
@@ -92,10 +93,12 @@ export default function Live(){
         return () => clearTimeout(timeout);
     }, [roomId, setActiveQuiz]);
 
+    useLeaveRoomOnRouteChange();
+
     return (
         <div className="flex flex-col h-screen">
             <UserNavbar name={roomDetails?.name} />
-            <div className="max-w-4xl w-3xl mx-auto flex-1 p-2 border-x border-input/50 pt-14">
+            <div className="max-w-4xl w-full mx-auto flex-1 p-2 border-x border-input/50 pt-14">
                 <Tabs interaction={interaction} setInteraction={setInteraction} />
                 {interaction === "qna" && <UserQuestionBox setInteraction={setInteraction} />}
                 {interaction === "poll" && <UserPoll setInteraction={setInteraction} />}
