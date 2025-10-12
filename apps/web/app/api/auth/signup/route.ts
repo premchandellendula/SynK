@@ -62,7 +62,7 @@ export async function POST(req: NextRequest){
         response.cookies.set("token", token, {
             httpOnly: true,
             sameSite: "lax",  // change it to none when deploying
-            secure: false,   // change it to true when deploying
+            secure: true,   // change it to true when deploying
             maxAge: 2 * 24 * 60 * 60
         })
 
