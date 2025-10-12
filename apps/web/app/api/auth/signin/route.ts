@@ -30,16 +30,17 @@ export async function POST(req: NextRequest){
         })
 
         if(!user){
-            throw new Error("User not found or password missing")
-            return;
+            return NextResponse.json({
+                message: "Invalid email or password"
+            }, { status: 400 });
         }
 
         const isPasswordValid = await bcrypt.compare(password, user.password as string)
 
         if(!isPasswordValid){
-            NextResponse.json({
-                message: "Incorrect password"
-            }, {status: 400})
+            return NextResponse.json({
+                message: "Invalid email or password"
+            }, { status: 400 });
         }
 
         const JWT_SECRET = process.env.JWT_SECRET;
