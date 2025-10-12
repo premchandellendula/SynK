@@ -193,6 +193,9 @@ importers:
       '@prisma/client':
         specifier: ^6.17.1
         version: 6.17.1(prisma@6.17.1(typescript@5.8.2))(typescript@5.8.2)
+      prisma:
+        specifier: ^6.17.1
+        version: 6.17.1(typescript@5.8.2)
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
@@ -200,9 +203,6 @@ importers:
       '@types/node':
         specifier: ^22.16.0
         version: 22.16.0
-      prisma:
-        specifier: ^6.17.1
-        version: 6.17.1(typescript@5.8.2)
 
   packages/eslint-config:
     devDependencies:
