@@ -9,12 +9,12 @@ import PasswordInput from "@/components/ui/PasswordInput"
 import { useUser } from "@/hooks/useUser"
 import axios from "axios"
 import { useRouter } from "next/navigation"
-import { ChangeEvent, useState } from "react"
+import { ChangeEvent, FormEvent, useState } from "react"
 import { toast } from "sonner"
 import { signIn } from "next-auth/react"
 import { FcGoogle } from 'react-icons/fc'
 
-const page = () => {
+const Page = () => {
     const [formData, setFormData] = useState({
         email: "",
         password: ""
@@ -35,7 +35,7 @@ const page = () => {
         }));
     }
 
-    const handleSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         setLoading(true)
 
@@ -98,4 +98,4 @@ const page = () => {
     )
 }
 
-export default page
+export default Page
