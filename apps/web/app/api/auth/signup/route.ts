@@ -39,7 +39,7 @@ export async function POST(req: NextRequest){
         })
 
         if(!user){
-            throw new Error("Failed to create user")
+            return NextResponse.json({ message: "Invalid email or password" }, { status: 400 });
         }
 
         const JWT_SECRET = process.env.JWT_SECRET;
